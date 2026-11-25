@@ -291,7 +291,7 @@ nav a:hover { color: var(--ink) }
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  gap: clamp(4px, 1vh, 11px);
+  gap: clamp(3px, .7vh, 8px);
   flex: 1;
 }
 
@@ -299,7 +299,7 @@ nav a:hover { color: var(--ink) }
 
 .sky {
   position: relative;
-  height: clamp(150px, 23vh, 248px);
+  height: clamp(136px, 18.5vh, 214px);
   margin-top: clamp(2px, 1vh, 12px);
   flex: 0 0 auto;
 }
@@ -439,7 +439,7 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
   text-align: center;
   position: relative;
   z-index: 2;
-  padding: clamp(2px, .6vh, 10px) 0;
+  padding: clamp(2px, .5vh, 8px) 0;
 }
 
 .title-block .lens {
@@ -471,7 +471,7 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
 }
 
 .title-block h1 {
-  font: normal clamp(2.6rem, 9.2vw, 8.2rem)/.92 var(--serif);
+  font: normal clamp(2.3rem, 7vw, 6.2rem)/.92 var(--serif);
   letter-spacing: -.05em;
   margin: .14em 0 .1em;
   white-space: nowrap;
@@ -500,14 +500,6 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
   line-height: 1.45;
   max-width: 36rem;
   margin: .3rem auto 0;
-}
-
-.hero-sub {
-  color: var(--muted);
-  opacity: .78;
-  font-size: .8rem;
-  letter-spacing: .08em;
-  margin: .3rem 0 0;
 }
 
 .get-start {
@@ -577,7 +569,7 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
 
 .instrument {
   position: relative;
-  width: clamp(176px, 17vw, 240px);
+  width: clamp(250px, 26vw, 380px);
   flex: 0 0 auto;
   display: flex;
   flex-direction: column;
@@ -624,17 +616,17 @@ body.mood-neutral { --mood: #8a7438; --mood-glow: rgba(196, 168, 96, .32) }
 
 .readout strong {
   display: block;
-  font: 700 clamp(1.9rem, 2.5vw, 2.55rem)/1 var(--serif);
+  font: 700 clamp(2.8rem, 3.8vw, 4.1rem)/1 var(--serif);
   letter-spacing: -.03em;
   color: var(--ink);
 }
 
 .readout span {
   display: inline-block;
-  margin-top: 4px;
-  font-size: .68rem;
+  margin-top: 6px;
+  font-size: .88rem;
   font-weight: 650;
-  letter-spacing: .2em;
+  letter-spacing: .22em;
   text-transform: uppercase;
   color: var(--mood);
   transition: color .6s ease;

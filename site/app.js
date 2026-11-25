@@ -291,7 +291,7 @@ function renderWeather(animate = true) {
   $("weekValue").textContent = score == null ? "—" : score.toFixed(2);
   $("weekLabel").textContent = score == null
     ? "No scored items"
-    : score >= 0.05 ? "Positive · Sunny" : score <= -0.05 ? "Negative · Stormy" : "Neutral · Cloudy";
+    : score >= 0.05 ? "Positive" : score <= -0.05 ? "Negative" : "Neutral";
 
   const copy = WINDOW_COPY[weather.days] || [WINDOW_COPY[7][0], WINDOW_COPY[7][1]];
   if ($("weekKicker")) $("weekKicker").textContent = copy[0];

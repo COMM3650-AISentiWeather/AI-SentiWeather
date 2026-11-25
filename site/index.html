@@ -105,10 +105,10 @@
 
   <section class="weather glass" aria-labelledby="weekTitle" data-reveal data-anim="glass" style="--d:560ms">
     <div class="weather-copy">
-      <div class="kicker" id="weekKicker">Emotion of the week</div>
       <h2 id="weekTitle">This week&rsquo;s AI mood</h2>
-      <p id="weekDates">Loading the latest snapshot…</p>
-      <small id="weekCoverage"></small>
+      <div class="kicker sr-only" id="weekKicker">Emotion of the week</div>
+      <p id="weekDates" class="sr-only">Loading the latest snapshot…</p>
+      <small id="weekCoverage" class="sr-only"></small>
       <div class="daybar" role="group" aria-label="Choose the date window">
         <button class="step" id="prevWindow" type="button" aria-label="Earlier dates">‹</button>
         <span class="datefield">

@@ -4,6 +4,12 @@ Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://qiqi
 
 首页是「媒体 / AI」时间线与本周情绪仪表盘；点击 **Get Start!** 进入选择页，左选平台、右选公司，点 **GO!** 生成比较报告。报告包含数量、平均情绪、情绪分布、情绪走势、高频词和代表发言六个板块，并可导出 PDF / PNG / CSV。
 
+## 仓库与网址
+
+- 线上站点：<https://qiqiisverygood.github.io/COMM3650/>（Pages 从 `qiqiisverygood/COMM3650` 的 `main` 分支 /docs 文件夹发布）
+- 代码同样推送到 <https://github.com/kelly0631/COMM3650>。这个仓库目前是 Private，你的账号只有 Write 权限，所以它的 Pages 暂时开不了；等它改成 Public 后，把 Pages 指向 `main` /docs 就能用 `kelly0631.github.io/COMM3650`。
+- 本机仓库的 `origin` 配置了**两个 push 地址**，`git push origin main` 会同时更新两个仓库。
+
 ## 目录
 
 | 路径 | 用途 |

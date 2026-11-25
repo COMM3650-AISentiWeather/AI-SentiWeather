@@ -54,7 +54,7 @@ const hkdate = t => isoDate(Date.parse(t) + 8 * 3600000);
 const names = (set, lookup) => list.format([...set].map(k => lookup[k]));
 const cssVar = (name, fallback = "") =>
   getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
-const MONO_ICONS = new Set(["nyt", "openai", "anthropic", "reddit", "bluesky", "bytedance_seed"]);
+const MONO_ICONS = new Set(["nyt", "openai", "anthropic", "reddit", "bluesky", "bytedance_seed", "deepseek", "google_deepmind"]);
 const icon = (id, label = "") => {
   const im = el("img");
   im.src = "./icons/" + (icons[id] || id) + ".svg";

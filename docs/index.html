@@ -3,88 +3,106 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#fbfaf5">
+<meta name="theme-color" content="#f6f7f1" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#050d12" media="(prefers-color-scheme: dark)">
+<meta name="color-scheme" content="light dark">
 <title>AI SentiWeather · AI in public conversation</title>
 <meta name="description" content="A daily-updated tracker of media coverage and online discussion about five AI companies.">
 <link rel="stylesheet" href="./style.css">
 <script defer src="./app.js"></script>
 </head>
 <body data-page="home">
-<header>
+
+<div class="aurora" aria-hidden="true">
+  <span class="orb orb-a"></span>
+  <span class="orb orb-b"></span>
+  <span class="orb orb-c"></span>
+</div>
+
+<header class="site-head">
   <a class="brand" href="./index.html"><i aria-hidden="true">∿</i> AI SentiWeather</a>
   <nav aria-label="Main">
     <a href="start.html">Explore</a>
     <a href="report.html">Report</a>
-    <a href="https://github.com/kelly0631/COMM3650" target="_blank" rel="noopener noreferrer">GitHub</a>
+    <a href="https://github.com/qiqiisverygood/AI-SentiWeather" target="_blank" rel="noopener noreferrer">GitHub</a>
   </nav>
 </header>
 
-<main>
-  <section class="hero">
-    <svg class="wave" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+<main class="stage">
+
+  <section class="sky" aria-hidden="true">
+    <svg class="wave" viewBox="0 0 1440 320" preserveAspectRatio="none">
       <defs>
         <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0" stop-color="#2fb6ab"/>
-          <stop offset=".46" stop-color="#4ec9bf"/>
-          <stop offset=".62" stop-color="#a8cfc3"/>
-          <stop offset=".8" stop-color="#f0a985"/>
-          <stop offset="1" stop-color="#e2673a"/>
+          <stop offset="0" stop-color="#1fa79a"/>
+          <stop offset=".38" stop-color="#37c6b8"/>
+          <stop offset=".56" stop-color="#e9a37e"/>
+          <stop offset="1" stop-color="#dd5f30"/>
+        </linearGradient>
+        <linearGradient id="glowGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#1fa79a" stop-opacity=".6"/>
+          <stop offset=".5" stop-color="#5fd0c2" stop-opacity=".35"/>
+          <stop offset="1" stop-color="#dd5f30" stop-opacity=".6"/>
         </linearGradient>
       </defs>
-      <path d="M-30 250 C 40 96, 118 92, 186 214 S 304 342, 372 218 S 492 74, 566 196 S 690 318, 762 200 S 884 78, 958 178 S 1096 250, 1230 158"
-            fill="none" stroke="url(#waveGrad)" stroke-width="2.4" stroke-linecap="round"/>
+      <path class="wave-glow" d="M-40 232 C 60 78, 150 70, 232 196 S 372 320, 452 190 S 596 52, 676 176 S 812 300, 892 178 S 1040 60, 1120 168 S 1290 244, 1490 138"
+            fill="none" stroke="url(#glowGrad)" stroke-width="14" stroke-linecap="round"/>
+      <path class="wave-line" d="M-40 232 C 60 78, 150 70, 232 196 S 372 320, 452 190 S 596 52, 676 176 S 812 300, 892 178 S 1040 60, 1120 168 S 1290 244, 1490 138"
+            fill="none" stroke="url(#waveGrad)" stroke-width="3" stroke-linecap="round"/>
     </svg>
-    <div class="baseline" aria-hidden="true"></div>
-    <div class="frost" aria-hidden="true"></div>
+    <div class="horizon"></div>
+    <div class="frost-band"></div>
 
-    <div class="icon-field left" aria-hidden="true">
+    <div class="icon-field left">
       <p class="field-label">Media &amp; platforms</p>
       <div class="row">
-        <div class="tile media s3"><img src="./icons/nyt.svg" alt=""></div>
+        <div class="tile media s3"><img class="mono" src="./icons/nyt.svg" alt=""></div>
         <div class="tile media s2"><img src="./icons/guardian.svg" alt=""></div>
+        <div class="tile media s1"><img src="./icons/bbc.svg" alt=""></div>
       </div>
       <div class="row">
-        <div class="tile media s2"><img src="./icons/bbc.svg" alt=""></div>
-        <div class="tile media s1"><img src="./icons/hacker_news.svg" alt=""></div>
-        <div class="tile media s1"><img src="./icons/reddit.svg" alt=""></div>
-        <div class="tile media s1"><img src="./icons/bluesky.svg" alt=""></div>
+        <div class="tile media s2"><img src="./icons/hacker_news.svg" alt=""></div>
+        <div class="tile media s1"><img class="mono" src="./icons/reddit.svg" alt=""></div>
+        <div class="tile media s1"><img class="mono" src="./icons/bluesky.svg" alt=""></div>
       </div>
     </div>
 
-    <div class="icon-field right" aria-hidden="true">
+    <div class="icon-field right">
       <p class="field-label">AI companies</p>
       <div class="row">
-        <div class="tile ai s3"><img src="./icons/openai.svg" alt=""></div>
-        <div class="tile ai s2"><img src="./icons/anthropic.svg" alt=""></div>
+        <div class="tile ai s3"><img class="mono" src="./icons/openai.svg" alt=""></div>
+        <div class="tile ai s2"><img class="mono" src="./icons/anthropic.svg" alt=""></div>
+        <div class="tile ai s1"><img src="./icons/deepmind.svg" alt=""></div>
       </div>
       <div class="row">
-        <div class="tile ai s2"><img src="./icons/deepmind.svg" alt=""></div>
-        <div class="tile ai s1"><img src="./icons/deepseek.svg" alt=""></div>
-        <div class="tile ai s1"><img src="./icons/bytedance.svg" alt=""></div>
+        <div class="tile ai s2"><img src="./icons/deepseek.svg" alt=""></div>
+        <div class="tile ai s1"><img class="mono" src="./icons/bytedance.svg" alt=""></div>
       </div>
-    </div>
-
-    <div class="hero-copy">
-      <p class="kicker">COMM3650 · Final project</p>
-      <h1><span class="ai-mark">AI</span> <em>SentiWeather</em></h1>
-      <p class="hero-lede">A daily-updated tracker of how newsrooms and online communities talk about five AI companies.</p>
-      <p class="hero-zh">媒体与论坛如何谈论 AI —— 每天更新的观察站</p>
-      <a class="get-start" href="start.html">Get Start! <span class="arrow" aria-hidden="true">↗</span></a>
     </div>
   </section>
 
-  <section class="week" aria-labelledby="weekTitle">
-    <div>
+  <section class="title-block">
+    <p class="kicker">COMM3650 · Final project</p>
+    <h1><span class="ai-mark">AI</span> <em>SentiWeather</em></h1>
+    <p class="hero-lede">A daily-updated tracker of how newsrooms and online communities talk about five AI companies.</p>
+    <p class="hero-zh">媒体与论坛如何谈论 AI —— 每天更新的观察站</p>
+    <a class="get-start" href="start.html">Get Start! <span class="arrow" aria-hidden="true">↗</span></a>
+  </section>
+
+  <section class="weather glass" aria-labelledby="weekTitle">
+    <div class="weather-copy">
       <div class="kicker">Emotion of the week</div>
       <h2 id="weekTitle">本周人们对 AI 的情绪</h2>
       <p id="weekDates">Loading the latest snapshot…</p>
-      <small id="weekCoverage"></small>
     </div>
     <div class="instrument">
       <canvas id="gauge" width="560" height="265" aria-hidden="true"></canvas>
-      <strong id="weekValue">—</strong>
-      <span id="weekLabel"></span>
+      <div class="readout">
+        <strong id="weekValue">—</strong>
+        <span id="weekLabel"></span>
+      </div>
     </div>
+    <small id="weekCoverage"></small>
   </section>
 
   <div class="corners">
@@ -94,16 +112,12 @@
   <p id="loadError" role="alert" hidden></p>
 </main>
 
-<footer>
-  <span>AI SentiWeather · COMM3650 · Kelly &amp; Fufu</span>
-  <span>Hong Kong time · daily cutoff 10:00 HKT</span>
-</footer>
-
 <dialog class="dialog" id="aboutDialog">
   <div class="body">
     <h2>About the program</h2>
     <p>AI SentiWeather follows five AI companies — OpenAI, Anthropic, Google DeepMind, DeepSeek and ByteDance Seed — across news outlets (The New York Times, The Guardian, BBC) and online communities (Hacker News, Reddit, Bluesky).</p>
     <p>Every day a scheduled job collects new items, scores their tone and republishes this site. Forum figures are samples; media figures use headlines and short excerpts.</p>
+    <p class="tiny">COMM3650 · Kelly &amp; Fufu · Hong Kong time, daily cutoff 10:00 HKT</p>
     <button class="close" type="button">Close</button>
   </div>
 </dialog>
@@ -112,7 +126,8 @@
   <div class="body">
     <h2>Contact Us</h2>
     <p>Course project for COMM3650 (CUHK), built by Kelly &amp; Fufu.</p>
-    <p>Source and issues: <a href="https://github.com/kelly0631/COMM3650" target="_blank" rel="noopener noreferrer">github.com/kelly0631/COMM3650</a></p>
+    <p>Source and issues: <a href="https://github.com/qiqiisverygood/AI-SentiWeather" target="_blank" rel="noopener noreferrer">github.com/qiqiisverygood/AI-SentiWeather</a></p>
+    <p class="tiny">kelly0631/COMM3650 · qiqiisverygood/AI-SentiWeather</p>
     <button class="close" type="button">Close</button>
   </div>
 </dialog>

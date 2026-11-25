@@ -32,8 +32,13 @@ const icons = {
 
 const sections = ["Coverage volume", "Average sentiment", "Sentiment distribution", "Sentiment over time", "Frequent words", "Voices in the sample"];
 const attitudes = ["positive", "neutral", "negative"];
-const palette = ["#19685b", "#a24869", "#416da7"];
-const attitudeColors = ["#247464", "#a6ada0", "#af5364"];
+const wantsDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
+const palette = () => (wantsDark()
+  ? ["#63d3bf", "#e290a4", "#8ea9e8"]
+  : ["#19685b", "#a24869", "#416da7"]);
+const attitudeColors = () => (wantsDark()
+  ? ["#3f9e89", "#8b9590", "#d4717f"]
+  : ["#247464", "#a6ada0", "#af5364"]);
 const list = new Intl.ListFormat("en", { style: "long", type: "conjunction" });
 
 const el = (tag, text, cls) => {
@@ -47,9 +52,13 @@ const isoDate = t => new Date(t).toISOString().slice(0, 10);
 const shift = (d, n) => isoDate(Date.parse(d + "T00:00:00Z") + n * 86400000);
 const hkdate = t => isoDate(Date.parse(t) + 8 * 3600000);
 const names = (set, lookup) => list.format([...set].map(k => lookup[k]));
+const cssVar = (name, fallback = "") =>
+  getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
+const MONO_ICONS = new Set(["nyt", "openai", "anthropic", "reddit", "bluesky", "bytedance_seed"]);
 const icon = (id, label = "") => {
   const im = el("img");
   im.src = "./icons/" + (icons[id] || id) + ".svg";
+  if (MONO_ICONS.has(id)) im.className = "mono";
   im.alt = "";
   im.title = label;
   return im;
@@ -125,6 +134,8 @@ function drawGauge(value) {
   if (!c) return;
   const g = c.getContext("2d");
   const x = 280, y = 223, r = 176;
+  const ink = cssVar("--ink", "#143730");
+  const label = cssVar("--gauge-text", "#50635c");
   g.clearRect(0, 0, c.width, c.height);
   g.lineWidth = 23;
   const col = ["#af5364", "#c78c80", "#cdc9ae", "#99bb9c", "#307968"];
@@ -134,7 +145,7 @@ function drawGauge(value) {
     g.arc(x, y, r, Math.PI * (1 + i / 5) + 0.016, Math.PI * (1 + (i + 1) / 5) - 0.016);
     g.stroke();
   });
-  g.fillStyle = "#50635c";
+  g.fillStyle = label;
   g.textAlign = "center";
   g.font = "21px Arial";
   g.fillText("−1", x - r, y + 31);
@@ -144,11 +155,12 @@ function drawGauge(value) {
   g.beginPath();
   g.moveTo(x, y);
   g.lineTo(x + Math.cos(a) * (r + 8), y + Math.sin(a) * (r + 8));
-  g.strokeStyle = "#183930";
+  g.strokeStyle = ink;
   g.lineWidth = 7;
   g.stroke();
   g.beginPath();
   g.arc(x, y, 11, 0, Math.PI * 2);
+  g.fillStyle = ink;
   g.fill();
 }
 
@@ -175,6 +187,10 @@ function week() {
 
 function initHome() {
   week();
+  const scheme = window.matchMedia("(prefers-color-scheme: dark)");
+  const redraw = () => week();
+  if (scheme.addEventListener) scheme.addEventListener("change", redraw);
+  else if (scheme.addListener) scheme.addListener(redraw);
   for (const [id, key] of [["aboutDialog", "about"], ["contactDialog", "contact"]]) {
     const dlg = $(id);
     if (!dlg) continue;
@@ -336,12 +352,32 @@ function bucket(d) {
 function makeChart(parent, traces, overrides = {}) {
   const div = el("div", null, "plot");
   parent.append(div);
+  const ink = cssVar("--ink", "#153e38");
+  const muted = cssVar("--muted", "#5b716b");
+  const line = cssVar("--line", "#d9d7cb");
+  const axis = extra => {
+    const base = extra ? { ...extra } : {};
+    const title = { ...(base.title || {}) };
+    title.font = { color: muted, ...(title.font || {}) };
+    return {
+      automargin: true,
+      gridcolor: line,
+      zerolinecolor: line,
+      linecolor: line,
+      tickfont: { color: muted, ...(base.tickfont || {}) },
+      ...base,
+      title
+    };
+  };
+  const { xaxis: xOverride, yaxis: yOverride, ...rest } = overrides;
   const layout = {
     ...data.layout,
+    colorway: palette(),
     height: 300,
-    xaxis: { automargin: true },
-    yaxis: { automargin: true },
-    ...overrides
+    font: { ...(data.layout.font || {}), color: ink },
+    ...rest,
+    xaxis: axis(xOverride),
+    yaxis: axis(yOverride)
   };
   const save = el("button", "Save chart PNG", "chart-save");
   save.type = "button";
@@ -383,7 +419,7 @@ function wordCloud(parent, items) {
       const box = [x - width / 2, y - h / 2, x + width / 2, y + h / 2];
       if (box[0] < 3 || box[1] < 2 || box[2] > 917 || box[3] > 338 || placed.some(p => box[0] < p[2] && box[2] > p[0] && box[1] < p[3] && box[3] > p[1])) continue;
       placed.push(box);
-      g.fillStyle = palette[i % 3];
+      g.fillStyle = palette()[i % 3];
       g.fillText(w, x, y);
       break;
     }
@@ -464,7 +500,7 @@ function renderReport() {
         ...data.traces.average,
         y: groups.map(g => g.name),
         x: means,
-        marker: { color: palette },
+        marker: { color: palette() },
         text: means.map(v => (v == null ? "" : v.toFixed(2))),
         textposition: "auto"
       }], { xaxis: { range: [-1, 1] }, yaxis: { automargin: true } }));
@@ -476,7 +512,7 @@ function renderReport() {
         name: a,
         x: groups.map(g => g.name),
         y: groups.map(g => count(g, a)),
-        marker: { color: attitudeColors[j] }
+        marker: { color: attitudeColors()[j] }
       })), { barmode: "stack", yaxis: { title: { text: "Scored items" } } }));
       const grid = el("div", null, "piegrid");
       panel.append(grid);
@@ -492,7 +528,7 @@ function renderReport() {
             values: ns,
             sort: false,
             hole: 0.45,
-            marker: { colors: attitudeColors },
+            marker: { colors: attitudeColors() },
             textinfo: "percent"
           }], { height: 240, margin: { t: 10, l: 12, r: 12, b: 10 }, showlegend: false }));
         } else card.append(el("p", "No scored items."));

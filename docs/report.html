@@ -8,6 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Report · AI SentiWeather</title>
 <meta name="description" content="Coverage volume, sentiment and quotes for the selected platform and company.">
+<script>document.documentElement.classList.add("js-anim")</script>
 <link rel="stylesheet" href="./style.css">
 <script defer src="./plotly.min.js"></script>
 <script defer src="./app.js"></script>
@@ -26,14 +27,14 @@
 </header>
 
 <main class="page">
-  <section class="intro">
+  <section class="intro" data-reveal data-anim="rise" style="--d:60ms">
     <div class="kicker">Comparison report</div>
     <h1 id="reportTitle">Building the report…</h1>
     <p id="subtitle"></p>
     <p><a class="back" id="editSelection" href="start.html">← Edit selection</a></p>
   </section>
 
-  <div class="toolbar">
+  <div class="toolbar" data-reveal data-anim="fade" style="--d:200ms">
     <details>
       <summary>Visible sections</summary>
       <div class="toggles" id="toggles"></div>
@@ -54,7 +55,7 @@
       <button id="csv" type="button">CSV</button>
     </div>
   </div>
-  <p id="reportNote" class="small"></p>
+  <p id="reportNote" class="small" data-reveal data-anim="fade" style="--d:280ms"></p>
   <div id="charts"></div>
   <p id="exportStatus" role="status"></p>
   <p id="loadError" role="alert" hidden></p>

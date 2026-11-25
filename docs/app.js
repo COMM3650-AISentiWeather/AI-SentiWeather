@@ -1070,6 +1070,65 @@ function initReport() {
 }
 
 /* ------------------------------------------------------------------ *
+ * motion modules
+ * ------------------------------------------------------------------ */
+
+let revealObserver = null;
+
+function motionQuery() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)");
+}
+
+function measureWave() {
+  for (const path of document.querySelectorAll(".wave-line, .wave-glow")) {
+    try {
+      path.style.setProperty("--len", Math.ceil(path.getTotalLength()) + "px");
+    } catch (error) {
+      /* geometry unavailable: CSS fallback length is used */
+    }
+  }
+}
+
+function armReveals(scope = document) {
+  const targets = [...scope.querySelectorAll("[data-reveal]:not(.is-in)")];
+  if (!targets.length) return;
+  if (motionQuery().matches || !("IntersectionObserver" in window)) {
+    targets.forEach(el => el.classList.add("is-in"));
+    return;
+  }
+  if (!revealObserver) {
+    revealObserver = new IntersectionObserver(entries => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        entry.target.classList.add("is-in");
+        revealObserver.unobserve(entry.target);
+      }
+    }, { threshold: 0.06, rootMargin: "0px 0px -6% 0px" });
+  }
+  targets.forEach(el => revealObserver.observe(el));
+}
+
+function playIntro() {
+  const targets = [...document.querySelectorAll("[data-reveal]:not(.is-in)")];
+  if (!targets.length) return;
+  if (motionQuery().matches) {
+    targets.forEach(el => el.classList.add("is-in"));
+    return;
+  }
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    targets.forEach(el => el.classList.add("is-in"));
+  }));
+}
+
+function prepareMotion() {
+  measureWave();
+  if (PAGE === "home") playIntro();
+  else armReveals();
+}
+
+prepareMotion();
+
+/* ------------------------------------------------------------------ *
  * boot
  * ------------------------------------------------------------------ */
 
@@ -1083,6 +1142,7 @@ async function init() {
 }
 
 init().catch(err => {
+  document.querySelectorAll("[data-reveal]").forEach(el => el.classList.add("is-in"));
   const box = $("loadError");
   if (box) {
     box.hidden = false;

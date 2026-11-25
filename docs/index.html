@@ -8,6 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <title>AI SentiWeather · AI in public conversation</title>
 <meta name="description" content="A daily-updated tracker of media coverage and online discussion about five AI companies.">
+<script>document.documentElement.classList.add("js-anim")</script>
 <link rel="stylesheet" href="./style.css">
 <script defer src="./app.js"></script>
 </head>
@@ -20,7 +21,7 @@
 </div>
 <div class="grain" aria-hidden="true"></div>
 
-<header class="site-head">
+<header class="site-head" data-reveal data-anim="fade" style="--d:0ms">
   <a class="brand" href="./index.html"><i aria-hidden="true">∿</i> AI SentiWeather</a>
   <nav aria-label="Main">
     <a href="start.html">Explore</a>
@@ -51,45 +52,45 @@
       <path class="wave-line" d="M-40 232 C 60 78, 150 70, 232 196 S 372 320, 452 190 S 596 52, 676 176 S 812 300, 892 178 S 1040 60, 1120 168 S 1290 244, 1490 138"
             fill="none" stroke="url(#waveGrad)" stroke-width="3" stroke-linecap="round"/>
     </svg>
-    <div class="horizon" aria-hidden="true"></div>
-    <div class="frost-band" aria-hidden="true"></div>
+    <div class="horizon" aria-hidden="true" data-reveal data-anim="sweep" style="--d:500ms"></div>
+    <div class="frost-band" aria-hidden="true" data-reveal data-anim="fade" style="--d:620ms"></div>
 
     <div class="icon-field left">
-      <p class="field-label">Media &amp; platforms</p>
+      <p class="field-label" data-reveal data-anim="fade" style="--d:150ms">Media &amp; platforms</p>
       <div class="row">
-        <a class="tile media s3" href="https://www.nytimes.com/" target="_blank" rel="noopener noreferrer" title="The New York Times" aria-label="Open The New York Times website"><img class="mono" src="./icons/nyt.svg" alt=""></a>
-        <a class="tile media s2" href="https://www.theguardian.com/" target="_blank" rel="noopener noreferrer" title="The Guardian" aria-label="Open The Guardian website"><img src="./icons/guardian.svg" alt=""></a>
-        <a class="tile media s1" href="https://www.bbc.com/news" target="_blank" rel="noopener noreferrer" title="BBC News" aria-label="Open BBC News website"><img src="./icons/bbc.svg" alt=""></a>
+        <a data-reveal style="--i:0" class="tile media s3" href="https://www.nytimes.com/" target="_blank" rel="noopener noreferrer" title="The New York Times" aria-label="Open The New York Times website"><img class="mono" src="./icons/nyt.svg" alt=""></a>
+        <a data-reveal style="--i:1" class="tile media s2" href="https://www.theguardian.com/" target="_blank" rel="noopener noreferrer" title="The Guardian" aria-label="Open The Guardian website"><img src="./icons/guardian.svg" alt=""></a>
+        <a data-reveal style="--i:2" class="tile media s1" href="https://www.bbc.com/news" target="_blank" rel="noopener noreferrer" title="BBC News" aria-label="Open BBC News website"><img src="./icons/bbc.svg" alt=""></a>
       </div>
       <div class="row">
-        <a class="tile media s2" href="https://news.ycombinator.com/" target="_blank" rel="noopener noreferrer" title="Hacker News" aria-label="Open Hacker News website"><img src="./icons/hacker_news.svg" alt=""></a>
-        <a class="tile media s1" href="https://www.reddit.com/" target="_blank" rel="noopener noreferrer" title="Reddit" aria-label="Open Reddit website"><img class="mono" src="./icons/reddit.svg" alt=""></a>
-        <a class="tile media s1" href="https://bsky.app/" target="_blank" rel="noopener noreferrer" title="Bluesky" aria-label="Open Bluesky website"><img class="mono" src="./icons/bluesky.svg" alt=""></a>
+        <a data-reveal style="--i:3" class="tile media s2" href="https://news.ycombinator.com/" target="_blank" rel="noopener noreferrer" title="Hacker News" aria-label="Open Hacker News website"><img src="./icons/hacker_news.svg" alt=""></a>
+        <a data-reveal style="--i:4" class="tile media s1" href="https://www.reddit.com/" target="_blank" rel="noopener noreferrer" title="Reddit" aria-label="Open Reddit website"><img class="mono" src="./icons/reddit.svg" alt=""></a>
+        <a data-reveal style="--i:5" class="tile media s1" href="https://bsky.app/" target="_blank" rel="noopener noreferrer" title="Bluesky" aria-label="Open Bluesky website"><img class="mono" src="./icons/bluesky.svg" alt=""></a>
       </div>
     </div>
 
     <div class="icon-field right">
-      <p class="field-label">AI companies</p>
+      <p class="field-label" data-reveal data-anim="fade" style="--d:150ms">AI companies</p>
       <div class="row">
-        <a class="tile ai s3" href="https://openai.com/" target="_blank" rel="noopener noreferrer" title="OpenAI" aria-label="Open OpenAI website"><img class="mono" src="./icons/openai.svg" alt=""></a>
-        <a class="tile ai s2" href="https://www.anthropic.com/" target="_blank" rel="noopener noreferrer" title="Anthropic" aria-label="Open Anthropic website"><img class="mono" src="./icons/anthropic.svg" alt=""></a>
-        <a class="tile ai s1" href="https://deepmind.google/" target="_blank" rel="noopener noreferrer" title="Google DeepMind" aria-label="Open Google DeepMind website"><img class="mono" src="./icons/deepmind.svg" alt=""></a>
+        <a data-reveal style="--i:6" class="tile ai s3" href="https://openai.com/" target="_blank" rel="noopener noreferrer" title="OpenAI" aria-label="Open OpenAI website"><img class="mono" src="./icons/openai.svg" alt=""></a>
+        <a data-reveal style="--i:7" class="tile ai s2" href="https://www.anthropic.com/" target="_blank" rel="noopener noreferrer" title="Anthropic" aria-label="Open Anthropic website"><img class="mono" src="./icons/anthropic.svg" alt=""></a>
+        <a data-reveal style="--i:8" class="tile ai s1" href="https://deepmind.google/" target="_blank" rel="noopener noreferrer" title="Google DeepMind" aria-label="Open Google DeepMind website"><img class="mono" src="./icons/deepmind.svg" alt=""></a>
       </div>
       <div class="row">
-        <a class="tile ai s2" href="https://www.deepseek.com/" target="_blank" rel="noopener noreferrer" title="DeepSeek" aria-label="Open DeepSeek website"><img class="mono" src="./icons/deepseek.svg" alt=""></a>
-        <a class="tile ai s1" href="https://seed.bytedance.com/" target="_blank" rel="noopener noreferrer" title="ByteDance Seed" aria-label="Open ByteDance Seed website"><img class="mono" src="./icons/bytedance.svg" alt=""></a>
+        <a data-reveal style="--i:9" class="tile ai s2" href="https://www.deepseek.com/" target="_blank" rel="noopener noreferrer" title="DeepSeek" aria-label="Open DeepSeek website"><img class="mono" src="./icons/deepseek.svg" alt=""></a>
+        <a data-reveal style="--i:10" class="tile ai s1" href="https://seed.bytedance.com/" target="_blank" rel="noopener noreferrer" title="ByteDance Seed" aria-label="Open ByteDance Seed website"><img class="mono" src="./icons/bytedance.svg" alt=""></a>
       </div>
     </div>
   </section>
 
   <section class="title-block">
-    <div class="lens" aria-hidden="true"></div>
-    <h1><span class="ai-mark">AI</span> <em>SentiWeather</em></h1>
-    <p class="hero-lede">A daily-updated tracker of how newsrooms and online communities talk about five AI companies.</p>
-    <a class="get-start" href="start.html">Get Start! <span class="arrow" aria-hidden="true">↗</span></a>
+    <div class="lens" aria-hidden="true" data-reveal data-anim="fade" style="--d:220ms"></div>
+    <h1 data-reveal data-anim="rise" style="--d:240ms"><span class="ai-mark">AI</span> <em>SentiWeather</em></h1>
+    <p class="hero-lede" data-reveal data-anim="rise" style="--d:360ms">A daily-updated tracker of how newsrooms and online communities talk about five AI companies.</p>
+    <a class="get-start" href="start.html" data-reveal data-anim="pop" style="--d:460ms">Get Start! <span class="arrow" aria-hidden="true">↗</span></a>
   </section>
 
-  <section class="weather glass" aria-labelledby="weekTitle">
+  <section class="weather glass" aria-labelledby="weekTitle" data-reveal data-anim="glass" style="--d:560ms">
     <div class="weather-copy">
       <div class="kicker" id="weekKicker">Emotion of the week</div>
       <h2 id="weekTitle">This week&rsquo;s AI mood</h2>
@@ -124,7 +125,7 @@
     </div>
   </section>
 
-  <div class="corners">
+  <div class="corners" data-reveal data-anim="rise" style="--d:780ms">
     <button class="corner" type="button" data-panel="about">About program</button>
     <button class="corner" type="button" data-panel="contact">Contact Us</button>
   </div>

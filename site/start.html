@@ -8,6 +8,7 @@
 <meta name="color-scheme" content="light dark">
 <title>Choose your comparison · AI SentiWeather</title>
 <meta name="description" content="Pick a platform and an AI company to build a comparison report.">
+<script>document.documentElement.classList.add("js-anim")</script>
 <link rel="stylesheet" href="./style.css">
 <script defer src="./app.js"></script>
 </head>
@@ -25,26 +26,26 @@
 </header>
 
 <main class="page">
-  <section class="intro">
+  <section class="intro" data-reveal data-anim="rise" style="--d:60ms">
     <div class="kicker">Explore the data</div>
     <h1>Choose what to compare.</h1>
     <p>Pick one platform and one company. To compare, keep one side at a single choice and add up to three on the other side.</p>
   </section>
 
   <section class="selector">
-    <div class="side platform">
+    <div class="side platform" data-reveal data-anim="slide-left" style="--d:200ms">
       <h2>Platform</h2>
       <small>Newsrooms and online communities</small>
       <div class="blobs" id="platforms" role="group" aria-label="Platforms"></div>
     </div>
-    <div class="side ai">
+    <div class="side ai" data-reveal data-anim="slide-right" style="--d:300ms">
       <h2>AI</h2>
       <small>Five companies in the sample</small>
       <div class="blobs" id="companies" role="group" aria-label="AI companies"></div>
     </div>
   </section>
 
-  <div class="launch">
+  <div class="launch" data-reveal data-anim="rise" style="--d:430ms">
     <div class="launch-bar">
       <p class="sentence" id="sentence" aria-live="polite">Choose a platform, a company and an available period.</p>
       <div class="presets" id="presets" role="group" aria-label="Duration"></div>

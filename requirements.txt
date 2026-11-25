@@ -1,0 +1,4 @@
+mediacloud==4.6.0
+requests==2.34.2
+vaderSentiment==3.3.2
+plotly==6.9.0

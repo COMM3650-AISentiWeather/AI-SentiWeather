@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#fbfaf5">
+<title>Choose your comparison · Signal Atlas</title>
+<meta name="description" content="Pick a platform and an AI company to build a comparison report.">
+<link rel="stylesheet" href="./style.css">
+<script defer src="./app.js"></script>
+</head>
+<body data-page="start">
+<header>
+  <a class="brand" href="./index.html"><i aria-hidden="true">∿</i> Signal Atlas</a>
+  <nav aria-label="Main">
+    <a href="./index.html">Home</a>
+    <a href="report.html">Report</a>
+    <a href="https://github.com/kelly0631/COMM3650" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <section class="intro">
+    <div class="kicker">Explore the data</div>
+    <h1>Choose what to compare.</h1>
+    <p>Pick one platform and one company. To compare, keep one side at a single choice and add up to three on the other side.</p>
+  </section>
+
+  <section class="selector">
+    <div class="side platform">
+      <h2>Platform</h2>
+      <small>Newsrooms and online communities</small>
+      <div class="blobs" id="platforms" role="group" aria-label="Platforms"></div>
+    </div>
+    <div class="side ai">
+      <h2>AI</h2>
+      <small>Five companies in the sample</small>
+      <div class="blobs" id="companies" role="group" aria-label="AI companies"></div>
+    </div>
+  </section>
+
+  <div class="launch">
+    <div class="launch-bar">
+      <p class="sentence" id="sentence" aria-live="polite">Choose a platform, a company and an available period.</p>
+      <div class="presets" id="presets" role="group" aria-label="Duration"></div>
+      <div class="custom" id="custom" hidden>
+        <label>From <input type="date" id="from"></label>
+        <label>To <input type="date" id="to"></label>
+      </div>
+    </div>
+    <a class="go" id="go" href="report.html" aria-disabled="true" data-disabled="true">GO!</a>
+  </div>
+  <p class="notice" id="notice" role="status"></p>
+  <p id="available"></p>
+  <p id="loadError" role="alert" hidden></p>
+</main>
+
+<footer>
+  <span>Signal Atlas · COMM3650 · Kelly &amp; Fufu</span>
+  <span>Hong Kong time · daily cutoff 10:00 HKT</span>
+</footer>
+</body>
+</html>

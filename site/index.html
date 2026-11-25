@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#fbfaf5">
+<title>Signal Atlas · AI in public conversation</title>
+<meta name="description" content="A daily-updated tracker of media coverage and online discussion about five AI companies.">
+<link rel="stylesheet" href="./style.css">
+<script defer src="./app.js"></script>
+</head>
+<body data-page="home">
+<header>
+  <a class="brand" href="./index.html"><i aria-hidden="true">∿</i> Signal Atlas</a>
+  <nav aria-label="Main">
+    <a href="start.html">Explore</a>
+    <a href="report.html">Report</a>
+    <a href="https://github.com/kelly0631/COMM3650" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <section class="hero">
+    <svg class="wave" viewBox="0 0 1200 420" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stop-color="#2fb6ab"/>
+          <stop offset=".46" stop-color="#4ec9bf"/>
+          <stop offset=".62" stop-color="#a8cfc3"/>
+          <stop offset=".8" stop-color="#f0a985"/>
+          <stop offset="1" stop-color="#e2673a"/>
+        </linearGradient>
+      </defs>
+      <path d="M-30 250 C 40 96, 118 92, 186 214 S 304 342, 372 218 S 492 74, 566 196 S 690 318, 762 200 S 884 78, 958 178 S 1096 250, 1230 158"
+            fill="none" stroke="url(#waveGrad)" stroke-width="2.4" stroke-linecap="round"/>
+    </svg>
+    <div class="baseline" aria-hidden="true"></div>
+    <div class="frost" aria-hidden="true"></div>
+
+    <div class="icon-field left" aria-hidden="true">
+      <p class="field-label">Media &amp; platforms</p>
+      <div class="row">
+        <div class="tile media s3"><img src="./icons/nyt.svg" alt=""></div>
+        <div class="tile media s2"><img src="./icons/guardian.svg" alt=""></div>
+      </div>
+      <div class="row">
+        <div class="tile media s2"><img src="./icons/bbc.svg" alt=""></div>
+        <div class="tile media s1"><img src="./icons/hacker_news.svg" alt=""></div>
+        <div class="tile media s1"><img src="./icons/reddit.svg" alt=""></div>
+        <div class="tile media s1"><img src="./icons/bluesky.svg" alt=""></div>
+      </div>
+    </div>
+
+    <div class="icon-field right" aria-hidden="true">
+      <p class="field-label">AI companies</p>
+      <div class="row">
+        <div class="tile ai s3"><img src="./icons/openai.svg" alt=""></div>
+        <div class="tile ai s2"><img src="./icons/anthropic.svg" alt=""></div>
+      </div>
+      <div class="row">
+        <div class="tile ai s2"><img src="./icons/deepmind.svg" alt=""></div>
+        <div class="tile ai s1"><img src="./icons/deepseek.svg" alt=""></div>
+        <div class="tile ai s1"><img src="./icons/bytedance.svg" alt=""></div>
+      </div>
+    </div>
+
+    <div class="hero-copy">
+      <p class="kicker">COMM3650 · Final project</p>
+      <h1>Signal <em>Atlas</em></h1>
+      <p class="hero-lede">A daily-updated tracker of how newsrooms and online communities talk about five AI companies.</p>
+      <p class="hero-zh">媒体与论坛如何谈论 AI —— 每天更新的观察站</p>
+      <a class="get-start" href="start.html">Get Start! <span class="arrow" aria-hidden="true">↗</span></a>
+    </div>
+  </section>
+
+  <section class="week" aria-labelledby="weekTitle">
+    <div>
+      <div class="kicker">Emotion of the week</div>
+      <h2 id="weekTitle">本周人们对 AI 的情绪</h2>
+      <p id="weekDates">Loading the latest snapshot…</p>
+      <small id="weekCoverage"></small>
+    </div>
+    <div class="instrument">
+      <canvas id="gauge" width="560" height="265" aria-hidden="true"></canvas>
+      <strong id="weekValue">—</strong>
+      <span id="weekLabel"></span>
+    </div>
+  </section>
+
+  <div class="corners">
+    <button class="corner" type="button" data-panel="about">About program</button>
+    <button class="corner" type="button" data-panel="contact">Contact Us</button>
+  </div>
+  <p id="loadError" role="alert" hidden></p>
+</main>
+
+<footer>
+  <span>Signal Atlas · COMM3650 · Kelly &amp; Fufu</span>
+  <span>Hong Kong time · daily cutoff 10:00 HKT</span>
+</footer>
+
+<dialog class="dialog" id="aboutDialog">
+  <div class="body">
+    <h2>About the program</h2>
+    <p>Signal Atlas follows five AI companies — OpenAI, Anthropic, Google DeepMind, DeepSeek and ByteDance Seed — across news outlets (The New York Times, The Guardian, BBC) and online communities (Hacker News, Reddit, Bluesky).</p>
+    <p>Every day a scheduled job collects new items, scores their tone and republishes this site. Forum figures are samples; media figures use headlines and short excerpts.</p>
+    <button class="close" type="button">Close</button>
+  </div>
+</dialog>
+
+<dialog class="dialog" id="contactDialog">
+  <div class="body">
+    <h2>Contact Us</h2>
+    <p>Course project for COMM3650 (CUHK), built by Kelly &amp; Fufu.</p>
+    <p>Source and issues: <a href="https://github.com/kelly0631/COMM3650" target="_blank" rel="noopener noreferrer">github.com/kelly0631/COMM3650</a></p>
+    <button class="close" type="button">Close</button>
+  </div>
+</dialog>
+</body>
+</html>

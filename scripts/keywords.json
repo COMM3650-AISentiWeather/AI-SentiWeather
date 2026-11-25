@@ -1,0 +1,50 @@
+{
+  "OpenAI": [
+    "openai",
+    "chatgpt",
+    "gpt-4",
+    "gpt-5",
+    "gpt-6",
+    "sora",
+    "sam altman",
+    "dalle",
+    "dall-e"
+  ],
+  "Anthropic": [
+    "anthropic",
+    "claude",
+    "dario amodei",
+    "sonnet",
+    "opus",
+    "haiku"
+  ],
+  "DeepMind": [
+    "deepmind",
+    "google gemini",
+    "gemini pro",
+    "gemini flash",
+    "gemma",
+    "notebooklm",
+    "demis hassabis"
+  ],
+  "DeepSeek": [
+    "deepseek",
+    "deepseek-r1",
+    "deepseek-v3",
+    "deepseek-v4",
+    "liang wenfeng",
+    "深度求索",
+    "梁文鋒",
+    "deepseek harness"
+  ],
+  "ByteDance": [
+    "bytedance seed",
+    "doubao",
+    "seedance",
+    "seeddream",
+    "seedream",
+    "ui-tars",
+    "豆包",
+    "即夢"
+  ]
+}

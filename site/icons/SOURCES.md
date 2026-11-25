@@ -1,0 +1,1 @@
+The New York Times, Anthropic, Bluesky, ByteDance, OpenAI and Reddit artwork comes from [Simple Icons 13.0.0](https://github.com/simple-icons/simple-icons/tree/13.0.0/icons). See simple-icons-license.txt. The Guardian, BBC, Hacker News, DeepMind and DeepSeek tiles use local project lettermarks. Names identify the platforms and companies.

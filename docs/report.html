@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#fbfaf5">
+<title>Report · Signal Atlas</title>
+<meta name="description" content="Coverage volume, sentiment and quotes for the selected platform and company.">
+<link rel="stylesheet" href="./style.css">
+<script defer src="./plotly.min.js"></script>
+<script defer src="./app.js"></script>
+</head>
+<body data-page="report">
+<header>
+  <a class="brand" href="./index.html"><i aria-hidden="true">∿</i> Signal Atlas</a>
+  <nav aria-label="Main">
+    <a href="./index.html">Home</a>
+    <a href="start.html">Explore</a>
+    <a href="https://github.com/kelly0631/COMM3650" target="_blank" rel="noopener noreferrer">GitHub</a>
+  </nav>
+</header>
+
+<main>
+  <section class="intro">
+    <div class="kicker">Comparison report</div>
+    <h1 id="reportTitle">Building the report…</h1>
+    <p id="subtitle"></p>
+    <p><a class="back" id="editSelection" href="start.html">← Edit selection</a></p>
+  </section>
+
+  <div class="toolbar">
+    <details>
+      <summary>Visible sections</summary>
+      <div class="toggles" id="toggles"></div>
+    </details>
+    <label>Group by
+      <select id="grain"><option>Day</option><option>Week</option><option>Month</option></select>
+    </label>
+    <label>Content
+      <select id="kind">
+        <option value="all">All items</option>
+        <option value="primary">Posts &amp; articles</option>
+        <option value="comment">Comments</option>
+      </select>
+    </label>
+    <div class="exports">
+      <button id="pdf" type="button">PDF</button>
+      <button id="png" type="button">PNG</button>
+      <button id="csv" type="button">CSV</button>
+    </div>
+  </div>
+  <p id="reportNote" class="small"></p>
+  <div id="charts"></div>
+  <p id="exportStatus" role="status"></p>
+  <p id="loadError" role="alert" hidden></p>
+</main>
+
+<footer>
+  <span>Signal Atlas · COMM3650 · Kelly &amp; Fufu</span>
+  <span>Hong Kong time · daily cutoff 10:00 HKT</span>
+</footer>
+</body>
+</html>

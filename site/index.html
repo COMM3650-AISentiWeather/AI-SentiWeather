@@ -18,6 +18,7 @@
   <span class="orb orb-b"></span>
   <span class="orb orb-c"></span>
 </div>
+<div class="grain" aria-hidden="true"></div>
 
 <header class="site-head">
   <a class="brand" href="./index.html"><i aria-hidden="true">∿</i> AI SentiWeather</a>
@@ -30,8 +31,8 @@
 
 <main class="stage">
 
-  <section class="sky" aria-hidden="true">
-    <svg class="wave" viewBox="0 0 1440 320" preserveAspectRatio="none">
+  <section class="sky">
+    <svg class="wave" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="waveGrad" x1="0" y1="0" x2="1" y2="0">
           <stop offset="0" stop-color="#1fa79a"/>
@@ -50,38 +51,39 @@
       <path class="wave-line" d="M-40 232 C 60 78, 150 70, 232 196 S 372 320, 452 190 S 596 52, 676 176 S 812 300, 892 178 S 1040 60, 1120 168 S 1290 244, 1490 138"
             fill="none" stroke="url(#waveGrad)" stroke-width="3" stroke-linecap="round"/>
     </svg>
-    <div class="horizon"></div>
-    <div class="frost-band"></div>
+    <div class="horizon" aria-hidden="true"></div>
+    <div class="frost-band" aria-hidden="true"></div>
 
     <div class="icon-field left">
       <p class="field-label">Media &amp; platforms</p>
       <div class="row">
-        <div class="tile media s3"><img class="mono" src="./icons/nyt.svg" alt=""></div>
-        <div class="tile media s2"><img src="./icons/guardian.svg" alt=""></div>
-        <div class="tile media s1"><img src="./icons/bbc.svg" alt=""></div>
+        <a class="tile media s3" href="https://www.nytimes.com/" target="_blank" rel="noopener noreferrer" title="The New York Times" aria-label="Open The New York Times website"><img class="mono" src="./icons/nyt.svg" alt=""></a>
+        <a class="tile media s2" href="https://www.theguardian.com/" target="_blank" rel="noopener noreferrer" title="The Guardian" aria-label="Open The Guardian website"><img src="./icons/guardian.svg" alt=""></a>
+        <a class="tile media s1" href="https://www.bbc.com/news" target="_blank" rel="noopener noreferrer" title="BBC News" aria-label="Open BBC News website"><img src="./icons/bbc.svg" alt=""></a>
       </div>
       <div class="row">
-        <div class="tile media s2"><img src="./icons/hacker_news.svg" alt=""></div>
-        <div class="tile media s1"><img class="mono" src="./icons/reddit.svg" alt=""></div>
-        <div class="tile media s1"><img class="mono" src="./icons/bluesky.svg" alt=""></div>
+        <a class="tile media s2" href="https://news.ycombinator.com/" target="_blank" rel="noopener noreferrer" title="Hacker News" aria-label="Open Hacker News website"><img src="./icons/hacker_news.svg" alt=""></a>
+        <a class="tile media s1" href="https://www.reddit.com/" target="_blank" rel="noopener noreferrer" title="Reddit" aria-label="Open Reddit website"><img class="mono" src="./icons/reddit.svg" alt=""></a>
+        <a class="tile media s1" href="https://bsky.app/" target="_blank" rel="noopener noreferrer" title="Bluesky" aria-label="Open Bluesky website"><img class="mono" src="./icons/bluesky.svg" alt=""></a>
       </div>
     </div>
 
     <div class="icon-field right">
       <p class="field-label">AI companies</p>
       <div class="row">
-        <div class="tile ai s3"><img class="mono" src="./icons/openai.svg" alt=""></div>
-        <div class="tile ai s2"><img class="mono" src="./icons/anthropic.svg" alt=""></div>
-        <div class="tile ai s1"><img class="mono" src="./icons/deepmind.svg" alt=""></div>
+        <a class="tile ai s3" href="https://openai.com/" target="_blank" rel="noopener noreferrer" title="OpenAI" aria-label="Open OpenAI website"><img class="mono" src="./icons/openai.svg" alt=""></a>
+        <a class="tile ai s2" href="https://www.anthropic.com/" target="_blank" rel="noopener noreferrer" title="Anthropic" aria-label="Open Anthropic website"><img class="mono" src="./icons/anthropic.svg" alt=""></a>
+        <a class="tile ai s1" href="https://deepmind.google/" target="_blank" rel="noopener noreferrer" title="Google DeepMind" aria-label="Open Google DeepMind website"><img class="mono" src="./icons/deepmind.svg" alt=""></a>
       </div>
       <div class="row">
-        <div class="tile ai s2"><img class="mono" src="./icons/deepseek.svg" alt=""></div>
-        <div class="tile ai s1"><img class="mono" src="./icons/bytedance.svg" alt=""></div>
+        <a class="tile ai s2" href="https://www.deepseek.com/" target="_blank" rel="noopener noreferrer" title="DeepSeek" aria-label="Open DeepSeek website"><img class="mono" src="./icons/deepseek.svg" alt=""></a>
+        <a class="tile ai s1" href="https://seed.bytedance.com/" target="_blank" rel="noopener noreferrer" title="ByteDance Seed" aria-label="Open ByteDance Seed website"><img class="mono" src="./icons/bytedance.svg" alt=""></a>
       </div>
     </div>
   </section>
 
   <section class="title-block">
+    <div class="lens" aria-hidden="true"></div>
     <p class="kicker">COMM3650 · Final project</p>
     <h1><span class="ai-mark">AI</span> <em>SentiWeather</em></h1>
     <p class="hero-lede">A daily-updated tracker of how newsrooms and online communities talk about five AI companies.</p>
@@ -94,6 +96,7 @@
       <div class="kicker">Emotion of the week</div>
       <h2 id="weekTitle">本周人们对 AI 的情绪</h2>
       <p id="weekDates">Loading the latest snapshot…</p>
+      <small id="weekCoverage"></small>
     </div>
     <div class="instrument">
       <canvas id="gauge" width="560" height="265" aria-hidden="true"></canvas>
@@ -102,7 +105,6 @@
         <span id="weekLabel"></span>
       </div>
     </div>
-    <small id="weekCoverage"></small>
   </section>
 
   <div class="corners">

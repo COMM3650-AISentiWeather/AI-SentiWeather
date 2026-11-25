@@ -129,39 +129,65 @@ function statusText() {
  * home
  * ------------------------------------------------------------------ */
 
-function drawGauge(value) {
+let gaugeFrame = 0;
+
+function drawGauge(value, animate = true) {
   const c = $("gauge");
   if (!c) return;
   const g = c.getContext("2d");
   const x = 280, y = 223, r = 176;
   const ink = cssVar("--ink", "#143730");
   const label = cssVar("--gauge-text", "#50635c");
-  g.clearRect(0, 0, c.width, c.height);
-  g.lineWidth = 23;
-  const col = ["#af5364", "#c78c80", "#cdc9ae", "#99bb9c", "#307968"];
-  col.forEach((v, i) => {
+  const mood = cssVar("--mood", "#1c7a6c");
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const bands = ["#af5364", "#c78c80", "#cdc9ae", "#99bb9c", "#307968"];
+
+  const paint = v => {
+    g.clearRect(0, 0, c.width, c.height);
+    g.lineWidth = 23;
+    bands.forEach((band, i) => {
+      g.beginPath();
+      g.strokeStyle = band;
+      g.arc(x, y, r, Math.PI * (1 + i / 5) + 0.016, Math.PI * (1 + (i + 1) / 5) - 0.016);
+      g.stroke();
+    });
+    g.fillStyle = label;
+    g.textAlign = "center";
+    g.font = "21px Arial";
+    g.fillText("−1", x - r, y + 31);
+    g.fillText("+1", x + r, y + 31);
+    if (v == null) return;
+    const a = Math.PI * (1 + (v + 1) / 2);
     g.beginPath();
-    g.strokeStyle = v;
-    g.arc(x, y, r, Math.PI * (1 + i / 5) + 0.016, Math.PI * (1 + (i + 1) / 5) - 0.016);
+    g.moveTo(x, y);
+    g.lineTo(x + Math.cos(a) * (r + 8), y + Math.sin(a) * (r + 8));
+    g.strokeStyle = ink;
+    g.lineWidth = 7;
+    g.lineCap = "round";
     g.stroke();
-  });
-  g.fillStyle = label;
-  g.textAlign = "center";
-  g.font = "21px Arial";
-  g.fillText("−1", x - r, y + 31);
-  g.fillText("+1", x + r, y + 31);
-  if (value == null) return;
-  const a = Math.PI * (1 + (value + 1) / 2);
-  g.beginPath();
-  g.moveTo(x, y);
-  g.lineTo(x + Math.cos(a) * (r + 8), y + Math.sin(a) * (r + 8));
-  g.strokeStyle = ink;
-  g.lineWidth = 7;
-  g.stroke();
-  g.beginPath();
-  g.arc(x, y, 11, 0, Math.PI * 2);
-  g.fillStyle = ink;
-  g.fill();
+    g.beginPath();
+    g.arc(x, y, 11, 0, Math.PI * 2);
+    g.fillStyle = ink;
+    g.fill();
+    g.beginPath();
+    g.arc(x, y, 5, 0, Math.PI * 2);
+    g.fillStyle = mood;
+    g.fill();
+  };
+
+  cancelAnimationFrame(gaugeFrame);
+  if (value == null || reduce || !animate) {
+    paint(value);
+    return;
+  }
+  const from = -1, duration = 950, started = performance.now();
+  const step = now => {
+    const progress = Math.min(1, (now - started) / duration);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    paint(from + (value - from) * eased);
+    if (progress < 1) gaugeFrame = requestAnimationFrame(step);
+  };
+  gaugeFrame = requestAnimationFrame(step);
 }
 
 function week() {
@@ -177,9 +203,14 @@ function week() {
     return d >= start && d + 86400000 <= end;
   });
   const score = avg(rows.map(r => r.score));
+  const mood = score == null ? "" : score >= 0.05 ? "mood-positive" : score <= -0.05 ? "mood-negative" : "mood-neutral";
+  document.body.classList.remove("mood-positive", "mood-negative", "mood-neutral");
+  if (mood) document.body.classList.add(mood);
   drawGauge(score);
   $("weekValue").textContent = score == null ? "—" : score.toFixed(2);
-  $("weekLabel").textContent = score == null ? "No scored items" : score >= 0.05 ? "Positive" : score <= -0.05 ? "Negative" : "Neutral";
+  $("weekLabel").textContent = score == null
+    ? "No scored items"
+    : score >= 0.05 ? "Positive · 晴" : score <= -0.05 ? "Negative · 阴" : "Neutral · 多云";
   $("weekDates").textContent = hkdate(new Date(start).toISOString()) + " to " + hkdate(data.cutoff) + " · 10:00 HKT";
   const used = new Set(rows.map(r => r.platform));
   $("weekCoverage").textContent = rows.length + " scored items · " + used.size + " platforms represented. " + statusText();

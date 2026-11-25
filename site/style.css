@@ -49,6 +49,9 @@
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --sans: -apple-system, "Helvetica Neue", Inter, Arial, sans-serif;
   --head-h: 68px;
+  --t1: clamp(64px, 6.7vw, 93px);
+  --t2: clamp(80px, 8.3vw, 115px);
+  --t3: clamp(102px, 10.6vw, 144px);
   --speed: 2.25;
 
   font-family: var(--sans);
@@ -304,7 +307,7 @@ nav a:hover { color: var(--ink) }
 
 .sky {
   position: relative;
-  height: clamp(136px, 18.5vh, 214px);
+  height: calc(var(--t3) + var(--t2) + 34px);
   margin-top: clamp(2px, 1vh, 12px);
   flex: 0 0 auto;
 }
@@ -425,9 +428,9 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
 
 
 
-.s1 { width: clamp(40px, 4.2vw, 58px); height: clamp(40px, 4.2vw, 58px) }
-.s2 { width: clamp(50px, 5.2vw, 72px); height: clamp(50px, 5.2vw, 72px) }
-.s3 { width: clamp(64px, 6.6vw, 90px); height: clamp(64px, 6.6vw, 90px) }
+.s1 { width: var(--t1); height: var(--t1) }
+.s2 { width: var(--t2); height: var(--t2) }
+.s3 { width: var(--t3); height: var(--t3) }
 
 /* title */
 
@@ -1176,11 +1179,29 @@ footer {
   .brand i { width: 24px; height: 24px; font-size: 17px }
   nav { gap: 12px; font-size: .76rem }
   .stage { min-height: auto; gap: 18px; padding-bottom: 22px }
-  .sky { height: 150px; margin-top: 0 }
+  /* phones: the two clusters stack, so every tile can stay large */
+  :root { --t1: 49px; --t2: 62px; --t3: 78px }
+  .sky {
+    height: auto;
+    margin-top: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding-bottom: 16px;
+  }
+  .icon-field {
+    position: static;
+    width: 100%;
+    align-items: center;
+    gap: 6px;
+  }
+  .icon-field.left,
+  .icon-field.right { align-items: center }
+  .icon-field .row { justify-content: center }
+  .icon-field .row:nth-of-type(2),
+  .icon-field.right .row:nth-of-type(2) { margin-left: 0; margin-right: 0 }
   .field-label { font-size: .52rem; letter-spacing: .14em }
-  .s1 { width: 38px; height: 38px }
-  .s2 { width: 48px; height: 48px }
-  .s3 { width: 60px; height: 60px }
   .title-block h1 { font-size: clamp(2rem, 9vw, 3.4rem); white-space: normal }
   .hero-lede { font-size: .9rem }
   .selector { grid-template-columns: 1fr }
@@ -1311,17 +1332,19 @@ footer {
 
 /* short laptop screens: keep the whole composition on one page */
 @media (min-width: 821px) and (max-height: 960px) {
-  .sky { height: clamp(112px, 17vh, 170px) }
-  .title-block h1 { font-size: clamp(2.3rem, 7.6vw, 6.2rem) }
+  .sky { height: calc(var(--t3) + var(--t2) + 14px) }
+  .title-block h1 { font-size: clamp(2.3rem, 7.2vw, 5.9rem) }
   .title-block { padding: 0 }
-  .hero-lede { font-size: .9rem; margin-top: .25rem }
-  .get-start { margin-top: 8px; padding: 9px 28px; font-size: 1.2rem }
-  .weather { padding: 8px 26px }
+  .hero-lede { font-size: .9rem; margin-top: .1rem }
+  .get-start { margin-top: 6px; padding: 8px 26px; font-size: 1.2rem }
+  .weather { padding: 4px 26px }
   .instrument { width: clamp(220px, 23vw, 300px) }
   .readout strong { font-size: clamp(2.2rem, 3vw, 3rem) }
   .weather-copy h2 { font-size: clamp(1.2rem, 1.7vw, 1.7rem) }
   .corner { padding: 7px 18px; font-size: .85rem }
-  .weekstrip canvas { height: 64px }
-  .daybar { margin-top: 8px }
-  .weather-foot { padding-top: 6px }
+  .weekstrip canvas { height: 56px }
+  .daybar { margin-top: 6px }
+  .weather-foot { padding-top: 4px }
+  .stage { padding-bottom: 4px }
+  .icon-field { gap: 3px }
 }

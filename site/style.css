@@ -1298,6 +1298,7 @@ footer {
 }
 
 .js-anim .wave-glow { animation-delay: .12s }
+.js-anim .wave-line { animation-delay: var(--wd, 0s) }
 
 /* icons pop, then keep breathing */
 .js-anim .tile[data-reveal] { opacity: 0 }
@@ -1306,8 +1307,9 @@ footer {
   animation:
     m-pop calc(.95s * var(--speed)) cubic-bezier(.2, .85, .3, 1.05) both,
     m-float 9s ease-in-out infinite;
+  /* every tile lands at the same moment, then drifts on its own phase */
   animation-delay:
-    calc((240ms + var(--i, 0) * 100ms) * var(--speed)),
+    calc(240ms * var(--speed)),
     calc(2200ms + var(--i, 0) * 150ms);
 }
 

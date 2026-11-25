@@ -8,7 +8,12 @@
 <meta name="color-scheme" content="light dark">
 <title>Choose your comparison · AI SentiWeather</title>
 <meta name="description" content="Pick a platform and an AI company to build a comparison report.">
-<script>document.documentElement.classList.add("js-anim")</script>
+<script>
+  document.documentElement.classList.add("js-anim");
+  setTimeout(function () {
+    document.querySelectorAll("[data-reveal]").forEach(function (el) { el.classList.add("is-in"); });
+  }, 2500);
+</script>
 <link rel="stylesheet" href="./style.css">
 <script defer src="./app.js"></script>
 </head>

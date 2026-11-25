@@ -8,7 +8,12 @@
 <meta name="color-scheme" content="light dark">
 <title>Report · AI SentiWeather</title>
 <meta name="description" content="Coverage volume, sentiment and quotes for the selected platform and company.">
-<script>document.documentElement.classList.add("js-anim")</script>
+<script>
+  document.documentElement.classList.add("js-anim");
+  setTimeout(function () {
+    document.querySelectorAll("[data-reveal]").forEach(function (el) { el.classList.add("is-in"); });
+  }, 2500);
+</script>
 <link rel="stylesheet" href="./style.css">
 <script defer src="./plotly.min.js"></script>
 <script defer src="./app.js"></script>

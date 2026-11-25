@@ -8,7 +8,12 @@
 <meta name="color-scheme" content="light dark">
 <title>AI SentiWeather · AI in public conversation</title>
 <meta name="description" content="A daily-updated tracker of media coverage and online discussion about five AI companies.">
-<script>document.documentElement.classList.add("js-anim")</script>
+<script>
+  document.documentElement.classList.add("js-anim");
+  setTimeout(function () {
+    document.querySelectorAll("[data-reveal]").forEach(function (el) { el.classList.add("is-in"); });
+  }, 2500);
+</script>
 <link rel="stylesheet" href="./style.css">
 <script defer src="./app.js"></script>
 </head>

@@ -49,6 +49,7 @@
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --sans: -apple-system, "Helvetica Neue", Inter, Arial, sans-serif;
   --head-h: 68px;
+  --speed: 1.5;
 
   font-family: var(--sans);
   color: var(--ink);
@@ -1252,16 +1253,16 @@ footer {
 .js-anim [data-reveal] { opacity: 0 }
 
 .js-anim [data-reveal].is-in {
-  animation: m-rise .82s cubic-bezier(.16, .84, .34, 1) both;
-  animation-delay: var(--d, 0ms);
+  animation: m-rise calc(.82s * var(--speed)) cubic-bezier(.16, .84, .34, 1) both;
+  animation-delay: calc(var(--d, 0ms) * var(--speed));
 }
 
 .js-anim [data-reveal].is-in[data-anim="fade"] { animation-name: m-fade }
 .js-anim [data-reveal].is-in[data-anim="pop"] { animation-name: m-pop }
-.js-anim [data-reveal].is-in[data-anim="glass"] { animation-name: m-glass; animation-duration: 1s }
+.js-anim [data-reveal].is-in[data-anim="glass"] { animation-name: m-glass; animation-duration: calc(1s * var(--speed)) }
 .js-anim [data-reveal].is-in[data-anim="sweep"] {
   animation-name: m-sweep;
-  animation-duration: .95s;
+  animation-duration: calc(.95s * var(--speed));
   transform-origin: 50% 50%;
 }
 .js-anim [data-reveal].is-in[data-anim="slide-left"] { animation-name: m-slide-left }
@@ -1272,7 +1273,7 @@ footer {
 .js-anim .wave-glow {
   stroke-dasharray: var(--len, 2600px);
   stroke-dashoffset: var(--len, 2600px);
-  animation: m-draw 1.45s cubic-bezier(.32, .08, .24, 1) forwards;
+  animation: m-draw calc(1.45s * var(--speed)) cubic-bezier(.32, .08, .24, 1) forwards;
 }
 
 .js-anim .wave-glow { animation-delay: .12s }
@@ -1282,11 +1283,11 @@ footer {
 
 .js-anim .tile[data-reveal].is-in {
   animation:
-    m-pop .72s cubic-bezier(.2, .85, .3, 1.05) both,
+    m-pop calc(.95s * var(--speed)) cubic-bezier(.2, .85, .3, 1.05) both,
     m-float 9s ease-in-out infinite;
   animation-delay:
-    calc(160ms + var(--i, 0) * 55ms),
-    calc(900ms + var(--i, 0) * 75ms);
+    calc((240ms + var(--i, 0) * 100ms) * var(--speed)),
+    calc(2200ms + var(--i, 0) * 150ms);
 }
 
 @media (prefers-reduced-motion: reduce) {

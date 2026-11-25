@@ -1113,10 +1113,10 @@ footer {
   .title-block h1 { font-size: clamp(2.3rem, 7.6vw, 6.2rem) }
   .title-block { padding: 0 }
   .hero-lede { font-size: .9rem; margin-top: .25rem }
-  .hero-sub { font-size: .74rem }
-  .get-start { margin-top: 10px; padding: 10px 30px; font-size: 1.25rem }
-  .weather { padding: 10px 26px }
-  .instrument canvas { width: clamp(126px, 12vw, 168px) }
+  .get-start { margin-top: 8px; padding: 9px 28px; font-size: 1.2rem }
+  .weather { padding: 8px 26px }
+  .instrument { width: clamp(220px, 23vw, 300px) }
+  .readout strong { font-size: clamp(2.2rem, 3vw, 3rem) }
   .weather-copy h2 { font-size: clamp(1.2rem, 1.7vw, 1.7rem) }
   .corner { padding: 7px 18px; font-size: .85rem }
 }

@@ -92,16 +92,35 @@
 
   <section class="weather glass" aria-labelledby="weekTitle">
     <div class="weather-copy">
-      <div class="kicker">Emotion of the week</div>
+      <div class="kicker" id="weekKicker">Emotion of the week</div>
       <h2 id="weekTitle">This week&rsquo;s AI mood</h2>
       <p id="weekDates">Loading the latest snapshot…</p>
       <small id="weekCoverage"></small>
+      <div class="daybar" role="group" aria-label="Choose the date window">
+        <button class="step" id="prevWindow" type="button" aria-label="Earlier dates">‹</button>
+        <span class="datefield">
+          <input type="date" id="weekDate" aria-label="Show the window ending on this date">
+        </span>
+        <button class="step" id="nextWindow" type="button" aria-label="Later dates">›</button>
+        <div class="wpills" role="group" aria-label="Window length">
+          <button type="button" data-days="1">1 day</button>
+          <button type="button" data-days="7" aria-pressed="true">7 days</button>
+          <button type="button" data-days="30">30 days</button>
+        </div>
+        <button type="button" class="latest" id="latestWindow">Latest</button>
+      </div>
     </div>
     <div class="instrument">
       <canvas id="gauge" width="560" height="265" aria-hidden="true"></canvas>
       <div class="readout">
         <strong id="weekValue">—</strong>
         <span id="weekLabel"></span>
+      </div>
+    </div>
+    <div class="weather-foot">
+      <div class="weekstrip">
+        <canvas id="weekStrip" height="76" aria-label="Daily average sentiment across the collected period. Click a day to move the window."></canvas>
+        <div class="strip-tip" id="stripTip" hidden></div>
       </div>
     </div>
   </section>

@@ -190,38 +190,364 @@ function drawGauge(value, animate = true) {
   gaugeFrame = requestAnimationFrame(step);
 }
 
-function week() {
-  const end = Date.parse(data.cutoff);
-  const start = end - 7 * 86400000;
-  const rows = data.rows.filter(r => {
-    if (!r.companies.length || r.score == null) return false;
-    if (r.time) {
-      const t = Date.parse(r.time);
-      return start <= t && t < end;
-    }
-    const d = Date.parse(r.date + "T00:00:00+08:00");
-    return d >= start && d + 86400000 <= end;
+/* ---- mood gauge with a browsable history -------------------------- */
+
+const weather = { end: null, days: 7, score: null };
+let daySeries = [];
+let stripGeometry = null;
+
+function coverageBounds() {
+  const ranges = Object.values(data.ranges || {}).filter(Boolean);
+  if (!ranges.length) return null;
+  const starts = ranges.map(r => r[0]).sort();
+  const ends = ranges.map(r => r[1]).sort();
+  return [starts[0], ends[ends.length - 1]];
+}
+
+function clampEnd(date) {
+  const bounds = coverageBounds();
+  if (!bounds) return date;
+  if (!date) return bounds[1];
+  if (date < bounds[0]) return bounds[0];
+  if (date > bounds[1]) return bounds[1];
+  return date;
+}
+
+function dayLabel(date) {
+  return new Date(date + "T00:00:00+08:00").toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    timeZone: "Asia/Hong_Kong"
   });
+}
+
+/* one point per calendar day across the whole collected period */
+function buildDaySeries() {
+  const bounds = coverageBounds();
+  daySeries = [];
+  if (!bounds) return;
+  const buckets = new Map();
+  for (const r of data.rows) {
+    if (!r.companies.length || r.score == null) continue;
+    if (r.date < bounds[0] || r.date > bounds[1]) continue;
+    if (!buckets.has(r.date)) buckets.set(r.date, []);
+    buckets.get(r.date).push(r.score);
+  }
+  for (let d = bounds[0]; d <= bounds[1]; d = shift(d, 1)) {
+    const values = buckets.get(d) || [];
+    daySeries.push({
+      date: d,
+      n: values.length,
+      mean: values.length ? values.reduce((a, v) => a + v, 0) / values.length : null
+    });
+  }
+}
+
+function windowRows() {
+  const end = clampEnd(weather.end);
+  const bounds = coverageBounds();
+  let start = shift(end, -(weather.days - 1));
+  if (bounds && start < bounds[0]) start = bounds[0];
+  const rows = data.rows.filter(r =>
+    r.companies.length && r.score != null && r.date >= start && r.date <= end
+  );
+  return { start, end, rows };
+}
+
+const WINDOW_COPY = {
+  1: ["Emotion of the day", "That day&rsquo;s AI mood"],
+  7: ["Emotion of the week", "This week&rsquo;s AI mood"],
+  30: ["Emotion of the month", "This month&rsquo;s AI mood"]
+};
+
+function renderWeather(animate = true) {
+  if (!data || !daySeries.length) return;
+  const { start, end, rows } = windowRows();
   const score = avg(rows.map(r => r.score));
   const mood = score == null ? "" : score >= 0.05 ? "mood-positive" : score <= -0.05 ? "mood-negative" : "mood-neutral";
   document.body.classList.remove("mood-positive", "mood-negative", "mood-neutral");
   if (mood) document.body.classList.add(mood);
-  drawGauge(score);
+  weather.score = score;
+  drawGauge(score, animate);
+
   $("weekValue").textContent = score == null ? "—" : score.toFixed(2);
   $("weekLabel").textContent = score == null
     ? "No scored items"
     : score >= 0.05 ? "Positive · Sunny" : score <= -0.05 ? "Negative · Stormy" : "Neutral · Cloudy";
-  $("weekDates").textContent = hkdate(new Date(start).toISOString()) + " to " + hkdate(data.cutoff) + " · 10:00 HKT";
+
+  const copy = WINDOW_COPY[weather.days] || [WINDOW_COPY[7][0], WINDOW_COPY[7][1]];
+  if ($("weekKicker")) $("weekKicker").textContent = copy[0];
+  if ($("weekTitle")) $("weekTitle").innerHTML = copy[1];
+
+  const sameDay = start === end;
+  $("weekDates").textContent = sameDay
+    ? dayLabel(end) + " · 10:00 HKT"
+    : dayLabel(start) + " – " + dayLabel(end) + " · " + weather.days + "-day window";
   const used = new Set(rows.map(r => r.platform));
-  $("weekCoverage").textContent = rows.length + " scored items · " + used.size + " platforms represented. " + statusText();
+  $("weekCoverage").textContent = rows.length + " scored items · " + (used.size || 0) +
+    " platforms represented. " + statusText();
+
+  syncWeatherControls(start, end);
+  drawStrip(start, end);
+}
+
+function syncWeatherControls(start, end) {
+  const bounds = coverageBounds();
+  const input = $("weekDate");
+  if (input) {
+    if (bounds) {
+      input.min = bounds[0];
+      input.max = bounds[1];
+    }
+    input.value = weather.end;
+  }
+  if ($("prevWindow")) $("prevWindow").disabled = !!bounds && weather.end <= bounds[0];
+  if ($("nextWindow")) $("nextWindow").disabled = !!bounds && weather.end >= bounds[1];
+  document.querySelectorAll(".wpills button").forEach(b => {
+    b.setAttribute("aria-pressed", String(+b.dataset.days === weather.days));
+  });
+  if ($("weekDates")) $("weekDates").dataset.range = start + "/" + end;
+}
+
+function stepWindow(days) {
+  const next = clampEnd(shift(weather.end, days));
+  if (next === weather.end) return;
+  weather.end = next;
+  renderWeather();
+  saveWeatherState();
+}
+
+function setWindowDays(days) {
+  weather.days = days;
+  const bounds = coverageBounds();
+  if (bounds) {
+    const earliest = shift(bounds[0], days - 1);
+    if (weather.end < earliest) weather.end = clampEnd(earliest);
+  }
+  renderWeather();
+  saveWeatherState();
+}
+
+function saveWeatherState() {
+  if (!location.protocol.startsWith("http")) return;
+  const params = new URLSearchParams(location.search);
+  const bounds = coverageBounds();
+  if (bounds && weather.end && weather.end < bounds[1]) params.set("date", weather.end);
+  else params.delete("date");
+  if (weather.days !== 7) params.set("days", String(weather.days));
+  else params.delete("days");
+  const query = params.toString();
+  history.replaceState(null, "", location.pathname + (query ? "?" + query : ""));
+}
+
+/* the timeline strip: daily means, the active window, and click-to-jump */
+function drawStrip(start, end) {
+  const c = $("weekStrip");
+  if (!c || !daySeries.length) return;
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const width = c.clientWidth || c.parentElement.clientWidth || 720;
+  const height = Math.round(parseFloat(getComputedStyle(c).height)) || 76;
+  c.width = Math.round(width * dpr);
+  c.height = Math.round(height * dpr);
+  const g = c.getContext("2d");
+  g.setTransform(dpr, 0, 0, dpr, 0, 0);
+  g.clearRect(0, 0, width, height);
+
+  const padX = 12, padTop = 14, padBottom = 20;
+  const n = daySeries.length;
+  const span = Math.max(1, n - 1);
+  const x = i => padX + (width - 2 * padX) * (i / span);
+  /* daily means rarely leave ±0.5, so scale to what is actually there */
+  const extremes = daySeries.filter(d => d.mean != null).map(d => Math.abs(d.mean));
+  const scale = Math.min(1, Math.max(0.35, (Math.max(0, ...extremes) || 0.2) * 1.25));
+  const y = v => padTop + (height - padTop - padBottom) * (1 - (v + scale) / (2 * scale));
+  const pos = cssVar("--pos", "#1c7a6c");
+  const neg = cssVar("--neg", "#b2485c");
+  const neu = cssVar("--neu", "#8a7438");
+  const ink = cssVar("--ink", "#102c26");
+  const muted = cssVar("--gauge-text", "#506b64");
+  const mood = cssVar("--mood", "#1c7a6c");
+
+  let startIdx = daySeries.findIndex(d => d.date >= start);
+  if (startIdx < 0) startIdx = 0;
+  let endIdx = -1;
+  for (let i = 0; i < n; i++) if (daySeries[i].date <= end) endIdx = i;
+  if (endIdx < 0) endIdx = n - 1;
+
+  /* selected window: soft band + top rule */
+  const bandLeft = Math.max(padX - 6, x(startIdx) - 3);
+  const bandRight = Math.min(width - padX + 6, x(endIdx) + 3);
+  g.fillStyle = withAlpha(mood, 0.10);
+  roundRect(g, bandLeft, 4, Math.max(8, bandRight - bandLeft), height - 8, 8);
+  g.fill();
+
+  /* the -1 / 0 / +1 grid */
+  g.strokeStyle = withAlpha(ink, 0.10);
+  g.lineWidth = 1;
+  g.setLineDash([3, 4]);
+  g.beginPath();
+  g.moveTo(padX, y(0));
+  g.lineTo(width - padX, y(0));
+  g.stroke();
+  g.setLineDash([]);
+
+  /* the daily line, broken where a day has no scored items */
+  g.strokeStyle = withAlpha(ink, 0.62);
+  g.lineWidth = 1.8;
+  g.lineJoin = "round";
+  g.beginPath();
+  let drawing = false;
+  daySeries.forEach((point, i) => {
+    if (point.mean == null) {
+      drawing = false;
+      return;
+    }
+    if (drawing) g.lineTo(x(i), y(point.mean));
+    else g.moveTo(x(i), y(point.mean));
+    drawing = true;
+  });
+  g.stroke();
+
+  /* a dot per day, coloured by where it lands */
+  daySeries.forEach((point, i) => {
+    if (point.mean == null) return;
+    const colour = point.mean >= 0.05 ? pos : point.mean <= -0.05 ? neg : neu;
+    g.beginPath();
+    g.arc(x(i), y(point.mean), i === endIdx ? 4.4 : 2.6, 0, Math.PI * 2);
+    g.fillStyle = colour;
+    g.fill();
+    if (i === endIdx) {
+      g.beginPath();
+      g.arc(x(i), y(point.mean), 7.5, 0, Math.PI * 2);
+      g.strokeStyle = withAlpha(colour, 0.55);
+      g.lineWidth = 1.4;
+      g.stroke();
+    }
+  });
+
+  /* end labels */
+  g.fillStyle = muted;
+  g.font = "10px -apple-system, Helvetica, Arial, sans-serif";
+  g.textBaseline = "alphabetic";
+  g.textAlign = "left";
+  g.fillText(shortDay(daySeries[0].date), padX, height - 4);
+  g.textAlign = "right";
+  g.fillText(shortDay(daySeries[n - 1].date), width - padX, height - 4);
+
+  stripGeometry = { width, height, padX, n, span };
+}
+
+function shortDay(date) {
+  return new Date(date + "T00:00:00+08:00")
+    .toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "Asia/Hong_Kong" });
+}
+
+function stripIndexAt(clientX) {
+  const c = $("weekStrip");
+  if (!c || !stripGeometry) return -1;
+  const box = c.getBoundingClientRect();
+  const geom = stripGeometry;
+  const ratio = (clientX - box.left - geom.padX) / Math.max(1, geom.width - 2 * geom.padX);
+  const i = Math.round(ratio * geom.span);
+  return Math.min(geom.n - 1, Math.max(0, i));
+}
+
+function withAlpha(colour, alpha) {
+  const hex = String(colour).trim();
+  if (hex.startsWith("#") && (hex.length === 7 || hex.length === 4)) {
+    const full = hex.length === 4 ? "#" + [...hex.slice(1)].map(c => c + c).join("") : hex;
+    const r = parseInt(full.slice(1, 3), 16);
+    const gg = parseInt(full.slice(3, 5), 16);
+    const b = parseInt(full.slice(5, 7), 16);
+    return "rgba(" + r + ", " + gg + ", " + b + ", " + alpha + ")";
+  }
+  return "rgba(80, 120, 110, " + alpha + ")";
+}
+
+function roundRect(g, x, y, w, h, r) {
+  const radius = Math.min(r, w / 2, h / 2);
+  g.beginPath();
+  g.moveTo(x + radius, y);
+  g.arcTo(x + w, y, x + w, y + h, radius);
+  g.arcTo(x + w, y + h, x, y + h, radius);
+  g.arcTo(x, y + h, x, y, radius);
+  g.arcTo(x, y, x + w, y, radius);
+  g.closePath();
+}
+
+function initWeatherControls() {
+  const bounds = coverageBounds();
+  if (!bounds) return;
+  const input = $("weekDate");
+  if (input) {
+    input.addEventListener("change", () => {
+      if (!input.value) return;
+      weather.end = clampEnd(input.value);
+      renderWeather();
+      saveWeatherState();
+    });
+  }
+  const prev = $("prevWindow"), next = $("nextWindow");
+  if (prev) prev.onclick = () => stepWindow(-weather.days);
+  if (next) next.onclick = () => stepWindow(weather.days);
+  document.querySelectorAll(".wpills button").forEach(b => {
+    b.onclick = () => setWindowDays(+b.dataset.days);
+  });
+  if ($("latestWindow")) {
+    $("latestWindow").onclick = () => {
+      weather.end = clampEnd(null);
+      renderWeather();
+      saveWeatherState();
+    };
+  }
+
+  const strip = $("weekStrip");
+  const tip = $("stripTip");
+  if (strip && tip) {
+    strip.addEventListener("mousemove", e => {
+      const i = stripIndexAt(e.clientX);
+      if (i < 0) return;
+      const point = daySeries[i];
+      tip.hidden = false;
+      tip.textContent = shortDay(point.date) + " · " + (point.mean == null ? "no scored items" : (point.mean >= 0 ? "+" : "") + point.mean.toFixed(2)) + " · " + point.n + " items";
+      const geom = stripGeometry;
+      const left = Math.min(Math.max(14, geom.padX + (geom.width - 2 * geom.padX) * (i / geom.span)), geom.width - 14);
+      tip.style.left = left + "px";
+    });
+    strip.addEventListener("mouseleave", () => {
+      tip.hidden = true;
+    });
+    strip.addEventListener("click", e => {
+      const i = stripIndexAt(e.clientX);
+      if (i < 0) return;
+      weather.end = clampEnd(daySeries[i].date);
+      renderWeather();
+      saveWeatherState();
+    });
+  }
 }
 
 function initHome() {
-  week();
+  const params = new URLSearchParams(location.search);
+  const wantedDays = +(params.get("days") || 7);
+  weather.days = [1, 7, 30].includes(wantedDays) ? wantedDays : 7;
+  weather.end = clampEnd(params.get("date") || null);
+  buildDaySeries();
+  initWeatherControls();
+  renderWeather(false);
   const scheme = window.matchMedia("(prefers-color-scheme: dark)");
-  const redraw = () => week();
+  const redraw = () => {
+    drawGauge(weather.score, false);
+    drawStrip(windowRows().start, windowRows().end);
+  };
   if (scheme.addEventListener) scheme.addEventListener("change", redraw);
   else if (scheme.addListener) scheme.addListener(redraw);
+  let resizeTimer = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => drawStrip(windowRows().start, windowRows().end), 120);
+  });
   for (const [id, key] of [["aboutDialog", "about"], ["contactDialog", "contact"]]) {
     const dlg = $(id);
     if (!dlg) continue;

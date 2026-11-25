@@ -158,19 +158,36 @@ function drawGauge(value, animate = true) {
     g.fillText("+1", x + r, y + 31);
     if (v == null) return;
     const a = Math.PI * (1 + (v + 1) / 2);
+    const dx = Math.cos(a);
+    const dy = Math.sin(a);
+    const nx = -dy;
+    const ny = dx;
+    const tip = r + 1;
+    const shoulder = 10;
+    const halfBase = 2.7;
+    const pivotR = 11;
+
+    /* a single tapered hairline, anchored inside the pivot so it grows out of it */
     g.beginPath();
-    g.moveTo(x, y);
-    g.lineTo(x + Math.cos(a) * (r + 8), y + Math.sin(a) * (r + 8));
-    g.strokeStyle = ink;
-    g.lineWidth = 7;
-    g.lineCap = "round";
-    g.stroke();
-    g.beginPath();
-    g.arc(x, y, 11, 0, Math.PI * 2);
+    g.moveTo(x + dx * tip, y + dy * tip);
+    g.lineTo(x + dx * shoulder + nx * halfBase, y + dy * shoulder + ny * halfBase);
+    g.lineTo(x + dx * shoulder - nx * halfBase, y + dy * shoulder - ny * halfBase);
+    g.closePath();
     g.fillStyle = ink;
     g.fill();
+    g.lineJoin = "round";
+    g.lineWidth = 1.6;
+    g.strokeStyle = ink;
+    g.stroke();
+
+    /* pivot: hairline ring with a mood-coloured heart */
     g.beginPath();
-    g.arc(x, y, 5, 0, Math.PI * 2);
+    g.arc(x, y, pivotR, 0, Math.PI * 2);
+    g.strokeStyle = ink;
+    g.lineWidth = 1.5;
+    g.stroke();
+    g.beginPath();
+    g.arc(x, y, 3.4, 0, Math.PI * 2);
     g.fillStyle = mood;
     g.fill();
   };

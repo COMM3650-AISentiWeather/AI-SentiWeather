@@ -49,7 +49,7 @@
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
   --sans: -apple-system, "Helvetica Neue", Inter, Arial, sans-serif;
   --head-h: 68px;
-  --speed: 1.5;
+  --speed: 2.25;
 
   font-family: var(--sans);
   color: var(--ink);

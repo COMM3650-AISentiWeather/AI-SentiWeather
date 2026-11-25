@@ -502,7 +502,7 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
   margin: .3rem auto 0;
 }
 
-.hero-zh {
+.hero-sub {
   color: var(--muted);
   opacity: .78;
   font-size: .8rem;
@@ -1121,7 +1121,7 @@ footer {
   .title-block h1 { font-size: clamp(2.3rem, 7.6vw, 6.2rem) }
   .title-block { padding: 0 }
   .hero-lede { font-size: .9rem; margin-top: .25rem }
-  .hero-zh { font-size: .74rem }
+  .hero-sub { font-size: .74rem }
   .get-start { margin-top: 10px; padding: 10px 30px; font-size: 1.25rem }
   .weather { padding: 10px 26px }
   .instrument canvas { width: clamp(126px, 12vw, 168px) }

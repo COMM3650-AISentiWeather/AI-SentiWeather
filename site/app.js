@@ -210,7 +210,7 @@ function week() {
   $("weekValue").textContent = score == null ? "—" : score.toFixed(2);
   $("weekLabel").textContent = score == null
     ? "No scored items"
-    : score >= 0.05 ? "Positive · 晴" : score <= -0.05 ? "Negative · 阴" : "Neutral · 多云";
+    : score >= 0.05 ? "Positive · Sunny" : score <= -0.05 ? "Negative · Stormy" : "Neutral · Cloudy";
   $("weekDates").textContent = hkdate(new Date(start).toISOString()) + " to " + hkdate(data.cutoff) + " · 10:00 HKT";
   const used = new Set(rows.map(r => r.platform));
   $("weekCoverage").textContent = rows.length + " scored items · " + used.size + " platforms represented. " + statusText();

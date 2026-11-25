@@ -34,8 +34,8 @@ const sections = ["Coverage volume", "Average sentiment", "Sentiment distributio
 const attitudes = ["positive", "neutral", "negative"];
 const wantsDark = () => window.matchMedia("(prefers-color-scheme: dark)").matches;
 const palette = () => (wantsDark()
-  ? ["#63d3bf", "#e290a4", "#8ea9e8"]
-  : ["#19685b", "#a24869", "#416da7"]);
+  ? ["#f0885c", "#8fbdf0", "#b9a6e0"]
+  : ["#c9552f", "#4a7fb5", "#8a7aa0"]);
 const attitudeColors = () => (wantsDark()
   ? ["#3f9e89", "#8b9590", "#d4717f"]
   : ["#247464", "#a6ada0", "#af5364"]);

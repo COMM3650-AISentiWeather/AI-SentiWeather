@@ -21,24 +21,26 @@
   --glass-shadow: 0 30px 70px rgba(16, 44, 38, .13);
   --glass-inner: inset 0 1px 0 rgba(255, 255, 255, .72);
   --sheen: rgba(255, 255, 255, .6);
-  --tint-a: #cdeee7;
-  --tint-b: #ffe3d3;
-  --tint-c: #dde4f6;
+  --tint-a: #ffdccb;
+  --tint-b: #d6e6f8;
+  --tint-c: #e6e9f4;
   --lens-a: rgba(255, 255, 255, .30);
   --lens-b: rgba(255, 255, 255, .10);
   --lens-brd: rgba(255, 255, 255, .45);
   --mood: #1c7a6c;
   --mood-glow: rgba(39, 179, 167, .35);
 
-  --teal: #1c7a6c;
-  --cyan: #27b3a7;
-  --orange: #df6134;
+  --media: #d4603c;
+  --media-soft: #f0b49c;
+  --ai: #6fa6dd;
+  --ai-deep: #3f74ab;
+  --accent: #3f6f9e;
   --yellow: #f0c019;
   --gauge-text: #50635c;
 
-  --orb-a: #56d6c8;
-  --orb-b: #f5a17a;
-  --orb-c: #8fa8f0;
+  --orb-a: #f6a582;
+  --orb-b: #8fb8e8;
+  --orb-c: #b7b6f0;
   --orb-opacity: .7;
 
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
@@ -71,24 +73,26 @@
     --glass-shadow: 0 34px 90px rgba(0, 0, 0, .55);
     --glass-inner: inset 0 1px 0 rgba(255, 255, 255, .10);
     --sheen: rgba(255, 255, 255, .18);
-    --tint-a: #0a3b3c;
-    --tint-b: #3a1712;
-    --tint-c: #0b1730;
+    --tint-a: #3a1510;
+    --tint-b: #0e2742;
+    --tint-c: #1a1a33;
     --lens-a: rgba(255, 255, 255, .055);
     --lens-b: rgba(255, 255, 255, .015);
     --lens-brd: rgba(255, 255, 255, .10);
     --mood: #63d3bf;
     --mood-glow: rgba(75, 214, 199, .3);
 
-    --teal: #63d3bf;
-    --cyan: #4bd6c7;
-    --orange: #f08a58;
+    --media: #f0885c;
+    --media-soft: #f5b79c;
+    --ai: #8fbdf0;
+    --ai-deep: #a9cdf2;
+    --accent: #8fbdf0;
     --yellow: #f6cb3d;
     --gauge-text: #b8ccc6;
 
-    --orb-a: #14a89a;
-    --orb-b: #c2492a;
-    --orb-c: #3a55b8;
+    --orb-a: #c2492a;
+    --orb-b: #2f63b8;
+    --orb-c: #5b4fa8;
     --orb-opacity: .58;
   }
 }
@@ -318,8 +322,8 @@ nav a:hover { color: var(--ink) }
   right: -6vw;
   bottom: 0;
   height: 1.5px;
-  background: linear-gradient(90deg, transparent, var(--orange) 10%, #e8845c 50%, var(--orange) 90%, transparent);
-  box-shadow: 0 0 22px color-mix(in srgb, var(--orange) 45%, transparent);
+  background: linear-gradient(90deg, transparent, var(--media) 10%, color-mix(in srgb, var(--media) 70%, var(--ai)) 50%, var(--media) 90%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--media) 42%, transparent);
   opacity: .9;
 }
 
@@ -354,6 +358,9 @@ nav a:hover { color: var(--ink) }
 .icon-field .row { display: flex; gap: clamp(6px, .9vw, 13px); align-items: flex-end }
 .icon-field .row:nth-of-type(2) { margin-left: clamp(10px, 2vw, 26px) }
 .icon-field.right .row:nth-of-type(2) { margin-left: 0; margin-right: clamp(10px, 2vw, 26px) }
+
+.icon-field.left .field-label { color: color-mix(in srgb, var(--media) 72%, var(--muted)) }
+.icon-field.right .field-label { color: color-mix(in srgb, var(--ai-deep) 72%, var(--muted)) }
 
 .field-label {
   margin: 0 0 2px;
@@ -408,8 +415,8 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
 
 .tile img { display: block; width: 56%; height: 56%; object-fit: contain }
 
-.tile.media { border-top: 2px solid var(--cyan) }
-.tile.ai { border-top: 2px solid var(--orange) }
+.tile.media { border-top: 2px solid var(--media) }
+.tile.ai { border-top: 2px solid var(--ai) }
 
 .icon-field .row:nth-of-type(1) .tile:nth-child(2) { animation-delay: -2.2s }
 .icon-field .row:nth-of-type(1) .tile:nth-child(3) { animation-delay: -4.4s }
@@ -458,7 +465,7 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
   font-size: .72rem;
   text-transform: uppercase;
   letter-spacing: .22em;
-  color: var(--teal);
+  color: var(--accent);
   font-weight: 650;
   margin: 0;
 }
@@ -472,7 +479,7 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
 
 .title-block h1 em {
   font-style: normal;
-  background: linear-gradient(102deg, var(--ink) 0%, var(--teal) 44%, var(--cyan) 78%, color-mix(in srgb, var(--cyan) 55%, var(--orange)) 100%);
+  background: linear-gradient(102deg, var(--ink) 0%, var(--media) 38%, var(--media-soft) 58%, var(--ai) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -705,13 +712,13 @@ main.page {
 
 .side.platform {
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--cyan) 14%, transparent), transparent 60%),
+    linear-gradient(160deg, color-mix(in srgb, var(--media) 14%, transparent), transparent 60%),
     var(--glass-bg);
 }
 
 .side.ai {
   background:
-    linear-gradient(200deg, color-mix(in srgb, var(--orange) 15%, transparent), transparent 60%),
+    linear-gradient(200deg, color-mix(in srgb, var(--ai) 18%, transparent), transparent 60%),
     var(--glass-bg);
 }
 
@@ -721,8 +728,8 @@ main.page {
   letter-spacing: -.03em;
 }
 
-.side.platform h2 { color: var(--teal) }
-.side.ai h2 { color: var(--orange) }
+.side.platform h2 { color: var(--media) }
+.side.ai h2 { color: var(--ai-deep) }
 
 .side small { font-size: .78rem; color: var(--muted) }
 
@@ -766,23 +773,23 @@ main.page {
   letter-spacing: -.01em;
 }
 
-.platform .blob { border-color: color-mix(in srgb, var(--cyan) 65%, transparent) }
-.ai .blob { border-color: color-mix(in srgb, var(--orange) 55%, transparent) }
+.platform .blob { border-color: color-mix(in srgb, var(--media) 62%, transparent) }
+.ai .blob { border-color: color-mix(in srgb, var(--ai) 62%, transparent) }
 
 .blob:hover { transform: translateY(calc(var(--dy) - 3px)) rotate(var(--rot)) scale(1.02) }
 
 .platform .blob[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--cyan) 22%, var(--glass-bg));
-  border-color: var(--teal);
+  background: color-mix(in srgb, var(--media) 22%, var(--glass-bg));
+  border-color: var(--media);
   border-width: 2.6px;
-  box-shadow: 0 8px 26px color-mix(in srgb, var(--cyan) 32%, transparent);
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--media) 32%, transparent);
 }
 
 .ai .blob[aria-pressed="true"] {
-  background: color-mix(in srgb, var(--orange) 20%, var(--glass-bg));
-  border-color: var(--orange);
+  background: color-mix(in srgb, var(--ai) 24%, var(--glass-bg));
+  border-color: var(--ai-deep);
   border-width: 2.6px;
-  box-shadow: 0 8px 26px color-mix(in srgb, var(--orange) 32%, transparent);
+  box-shadow: 0 8px 26px color-mix(in srgb, var(--ai) 34%, transparent);
 }
 
 .blob[aria-pressed="true"]:after {
@@ -792,10 +799,10 @@ main.page {
   right: 9px;
   font-size: .85rem;
   font-weight: 700;
-  color: var(--teal);
+  color: var(--media);
 }
 
-.ai .blob[aria-pressed="true"]:after { color: var(--orange) }
+.ai .blob[aria-pressed="true"]:after { color: var(--ai-deep) }
 
 .blob[aria-disabled="true"] {
   opacity: .38;
@@ -880,12 +887,12 @@ main.page {
   place-content: center;
   min-width: clamp(84px, 10vw, 118px);
   padding: 0 clamp(14px, 2vw, 22px);
-  border: 2.4px solid var(--cyan);
+  border: 2.4px solid var(--ai-deep);
   border-radius: 18px 22px 16px 20px;
-  background: color-mix(in srgb, var(--cyan) 14%, var(--glass-bg));
+  background: color-mix(in srgb, var(--ai) 16%, var(--glass-bg));
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
-  color: var(--teal);
+  color: var(--ai-deep);
   font: 700 clamp(1.2rem, 2vw, 1.6rem)/1 "Bradley Hand", "Segoe Print", "Comic Sans MS", var(--serif);
   text-decoration: none;
   letter-spacing: .02em;
@@ -894,9 +901,9 @@ main.page {
 }
 
 .go:hover {
-  background: color-mix(in srgb, var(--cyan) 24%, var(--glass-bg));
+  background: color-mix(in srgb, var(--ai) 28%, var(--glass-bg));
   transform: rotate(0) translateY(-2px);
-  box-shadow: 0 12px 30px color-mix(in srgb, var(--cyan) 30%, transparent);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--ai) 32%, transparent);
 }
 
 .go[aria-disabled="true"], .go[data-disabled="true"] {
@@ -904,7 +911,7 @@ main.page {
   pointer-events: none;
 }
 
-.notice { margin: 10px 2px 0; font-size: .84rem; color: var(--orange); min-height: 1.2em }
+.notice { margin: 10px 2px 0; font-size: .84rem; color: var(--media); min-height: 1.2em }
 #available { color: var(--muted); font-size: .82rem; margin: 10px 2px 0 }
 
 /* report */
@@ -926,7 +933,7 @@ main.page {
 }
 
 .toolbar details { position: relative }
-.toolbar summary { cursor: pointer; color: var(--teal); font-weight: 600 }
+.toolbar summary { cursor: pointer; color: var(--accent); font-weight: 600 }
 .toolbar label { display: inline-flex; gap: 6px; align-items: center; color: var(--muted) }
 .toolbar select {
   border: 1px solid var(--line);
@@ -988,7 +995,7 @@ main.page {
 }
 .sample p { margin: .3em 0 }
 .sample small { display: block; font-size: .76rem }
-.sample a { font-size: .8rem; color: var(--teal) }
+.sample a { font-size: .8rem; color: var(--accent) }
 
 .tag {
   display: inline-block;
@@ -1001,7 +1008,7 @@ main.page {
   color: var(--muted);
 }
 
-.back { color: var(--teal); font-size: .86rem; text-decoration: none }
+.back { color: var(--accent); font-size: .86rem; text-decoration: none }
 .back:hover { text-decoration: underline }
 
 /* dialogs */
@@ -1032,8 +1039,8 @@ main.page {
 }
 
 #loadError {
-  border: 1px solid color-mix(in srgb, var(--orange) 55%, transparent);
-  background: color-mix(in srgb, var(--orange) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--media) 55%, transparent);
+  background: color-mix(in srgb, var(--media) 12%, transparent);
   color: var(--ink);
   border-radius: 14px;
   padding: 12px 16px;

@@ -1,6 +1,6 @@
 # Signal Atlas · COMM3650
 
-Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://kelly0631.github.io/COMM3650/>
+Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://qiqiisverygood.github.io/COMM3650/>
 
 首页是「媒体 / AI」时间线与本周情绪仪表盘；点击 **Get Start!** 进入选择页，左选平台、右选公司，点 **GO!** 生成比较报告。报告包含数量、平均情绪、情绪分布、情绪走势、高频词和代表发言六个板块，并可导出 PDF / PNG / CSV。
 
@@ -60,7 +60,7 @@ python -m http.server 8000 --directory demo-dist
 - Source 选 **Deploy from a branch**
 - Branch 选 **main**，文件夹选 **/docs**
 
-改完保存，几十秒后 <https://kelly0631.github.io/COMM3650/> 即可访问。
+改完保存，几十秒后 <https://qiqiisverygood.github.io/COMM3650/> 即可访问。
 
 ## 每日采集（可选，需先配置 Key）
 

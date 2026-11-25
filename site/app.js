@@ -1,7 +1,7 @@
 "use strict";
 
 /* ------------------------------------------------------------------ *
- * Signal Atlas — shared data layer + per-page controllers
+ * AI SentiWeather — shared data layer + per-page controllers
  * Pages: index.html (home), start.html (selection), report.html
  * ------------------------------------------------------------------ */
 
@@ -348,7 +348,7 @@ function makeChart(parent, traces, overrides = {}) {
   parent.append(save);
   save.onclick = () => Plotly.downloadImage(div, {
     format: "png",
-    filename: "signal-atlas-chart",
+    filename: "ai-sentiweather-chart",
     width: 1000,
     height: 480
   });
@@ -558,7 +558,7 @@ function csv() {
   };
   download(new Blob(["\ufeff", cols.join(",") + "\r\n" + selectedRows.map(r =>
     cols.map(c => escape(c in companies ? (r.companies.includes(c) ? 1 : r.unknown.includes(c) ? "" : 0) : r[c])).join(",")
-  ).join("\r\n")], { type: "text/csv;charset=utf-8" }), "signal-atlas.csv");
+  ).join("\r\n")], { type: "text/csv;charset=utf-8" }), "ai-sentiweather.csv");
 }
 
 async function png() {
@@ -613,7 +613,7 @@ async function png() {
     } else g.drawImage(v, 40, y, 920, (v.height * 920) / v.width);
   }
   c.toBlob(b => {
-    if (b) download(b, "signal-atlas.png");
+    if (b) download(b, "ai-sentiweather.png");
     else if ($("exportStatus")) $("exportStatus").textContent = "Image too large. Hide a section and try again.";
   });
 }

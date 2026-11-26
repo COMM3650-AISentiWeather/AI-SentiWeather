@@ -1,4 +1,4 @@
-name: AI SentiWeather
+name: AI Sentiweather
 on:
   schedule:
     # 00:00 UTC = 08:00 HKT. Each run collects the window ending 07:55 HKT the
@@ -35,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 300
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           persist-credentials: true
       - name: Verify private data settings
@@ -46,13 +46,13 @@ jobs:
         run: |
           test -n "$DATA_REPO" && test -n "$DATA_TOKEN" || { echo "Configure DATA_REPO and DATA_REPO_TOKEN first"; exit 1; }
           test "$(gh api "repos/$DATA_REPO" --jq '.private')" = true || { echo 'Data repository must be private'; exit 1; }
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: ${{ vars.DATA_REPO }}
           ref: main
           token: ${{ secrets.DATA_REPO_TOKEN }}
           path: private-data
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.12'
           cache: pip
@@ -63,7 +63,9 @@ jobs:
         run: python scripts/backfill_reset.py
       - name: Pin watermarks to a timestamp
         if: github.event_name == 'workflow_dispatch' && inputs.operation == 'restore'
-        run: python scripts/backfill_reset.py --to "${{ inputs.reset_to }}" --force
+        env:
+          RESET_TO: ${{ inputs.reset_to }}
+        run: python scripts/backfill_reset.py --to "$RESET_TO" --force
       - name: Collect sources
         id: collect
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.operation == 'update' || inputs.operation == 'backfill'))
@@ -75,12 +77,12 @@ jobs:
           MEDIACLOUD_API_KEY: ${{ secrets.MEDIACLOUD_API_KEY }}
           OBS_SOURCES: ${{ inputs.sources }}
           OBS_BACKFILL: ${{ inputs.operation == 'backfill' && '1' || '' }}
-        run: python scripts/collect.py
+        run: python -u scripts/collect.py
       - name: Persist private checkpoints
         if: steps.collect.outcome == 'success' || steps.collect.outcome == 'failure' || (github.event_name == 'workflow_dispatch' && inputs.operation == 'restore')
         working-directory: private-data
         run: |
-          git config user.name "AI SentiWeather"
+          git config user.name "AI Sentiweather"
           git config user.email "actions@users.noreply.github.com"
           git add -A -- . ':!scratch'
           if ! git diff --cached --quiet; then
@@ -97,7 +99,7 @@ jobs:
       - name: Publish the rebuilt site to docs/
         if: inputs.operation != 'backfill' && inputs.operation != 'restore'
         run: |
-          git config user.name "AI SentiWeather"
+          git config user.name "AI Sentiweather"
           git config user.email "actions@users.noreply.github.com"
           git add docs
           if ! git diff --cached --quiet; then

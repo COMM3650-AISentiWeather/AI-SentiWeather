@@ -30,24 +30,24 @@ MARKER = STATE / "backfill.json"
 
 
 def reset_source(name: str, start: str, dry_run: bool) -> tuple[int, int]:
-    """Lower every watermark in one source's state file to ``start``."""
+    """Set every watermark in one source's state file to ``start``."""
     folder = STATE / MEDIA[name]
     path = folder / f"{name}_state.json"
     if not path.is_file():
         print(f"{name}: no state file, nothing to reset", flush=True)
         return 0, 0
     state = json.loads(path.read_text(encoding="utf-8"))
-    lowered = sum(1 for value in state.values() if value > start)
+    changed = sum(1 for value in state.values() if value != start)
     if dry_run:
-        print(f"{name}: would lower {lowered} of {len(state)} watermarks", flush=True)
-        return lowered, len(state)
-    if lowered:
+        print(f"{name}: would pin {changed} of {len(state)} watermarks", flush=True)
+        return changed, len(state)
+    if changed:
         path.write_text(
             json.dumps({key: start for key in state}, indent=2, ensure_ascii=False),
             encoding="utf-8",
         )
-    print(f"{name}: lowered {lowered} of {len(state)} watermarks to {start}", flush=True)
-    return lowered, len(state)
+    print(f"{name}: pinned {changed} of {len(state)} watermarks to {start}", flush=True)
+    return changed, len(state)
 
 
 def forum_windows(start: str) -> int:
@@ -62,6 +62,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
     parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Apply even when the marker already records this start",
+    )
+    parser.add_argument(
         "--to",
         default="",
         help="ISO instant to pin every watermark to (default: the project start)",
@@ -75,7 +80,7 @@ def main() -> int:
             applied = json.loads(MARKER.read_text(encoding="utf-8")).get("start", "")
         except ValueError:
             applied = ""
-    if applied == start and not args.dry_run:
+    if applied == start and not (args.dry_run or args.force):
         print(f"backfill from {start} already applied; leaving watermarks alone")
         return 0
 

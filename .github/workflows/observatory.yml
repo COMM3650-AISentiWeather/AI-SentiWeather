@@ -63,7 +63,7 @@ jobs:
         run: python scripts/backfill_reset.py
       - name: Pin watermarks to a timestamp
         if: github.event_name == 'workflow_dispatch' && inputs.operation == 'restore'
-        run: python scripts/backfill_reset.py --to "${{ inputs.reset_to }}"
+        run: python scripts/backfill_reset.py --to "${{ inputs.reset_to }}" --force
       - name: Collect sources
         id: collect
         if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.operation == 'update' || inputs.operation == 'backfill'))

@@ -728,6 +728,9 @@ function buildBubbles(hostId, items, set, other) {
     b.setAttribute("aria-pressed", set.has(key));
     const reason = choiceReason(key, set, other);
     if (reason) {
+      /* tell the two kinds of "off" apart: this source has no data, or the
+         comparison is already full */
+      b.dataset.reason = key in platforms && !data.ranges[key] ? "nodata" : "limit";
       b.setAttribute("aria-disabled", "true");
       b.title = reason;
     }

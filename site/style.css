@@ -923,6 +923,13 @@ main.page {
 
 /* selection */
 
+.cap {
+  font-weight: 650;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--ink);
+}
+
 .selector {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -1045,9 +1052,15 @@ main.page {
   cursor: not-allowed;
 }
 
-.blob[aria-disabled="true"] span:after {
+.blob[aria-disabled="true"][data-reason="nodata"] span:after {
   content: " · no data";
   opacity: .8;
+}
+
+/* full comparison: dimmed but not mislabelled as missing data */
+.blob[aria-disabled="true"][data-reason="limit"] {
+  opacity: .55;
+  border-style: solid;
 }
 
 .launch {

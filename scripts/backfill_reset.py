@@ -22,7 +22,7 @@ import os
 import sys
 from pathlib import Path
 
-from project import MEDIA, START, iso, read_rows
+from project import MEDIA, START, instant, iso, read_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = Path(os.environ.get("OBS_STATE", ROOT / "private-data")).resolve()
@@ -61,9 +61,14 @@ def forum_windows(start: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--to",
+        default="",
+        help="ISO instant to pin every watermark to (default: the project start)",
+    )
     args = parser.parse_args()
 
-    start = iso(START)
+    start = iso(instant(args.to)) if args.to.strip() else iso(START)
     applied = ""
     if MARKER.is_file():
         try:

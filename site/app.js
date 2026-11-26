@@ -1363,8 +1363,8 @@ function startUpdateCountdown() {
   if (at) {
     const pad = n => String(n).padStart(2, "0");
     const hktH = (REFRESH_UTC_HOUR + 8) % 24;
-    at.textContent = pad(hktH) + ":" + pad(REFRESH_UTC_MINUTE) + " HKT (" +
-      pad(REFRESH_UTC_HOUR) + ":" + pad(REFRESH_UTC_MINUTE) + " UTC)";
+    /* Hong Kong is UTC+8 all year, so the label states the zone, not a UTC conversion */
+    at.textContent = pad(hktH) + ":" + pad(REFRESH_UTC_MINUTE) + " Hong Kong time (UTC+8)";
   }
   if (!clock) return;
   const tick = () => {

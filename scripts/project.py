@@ -39,7 +39,7 @@ def cutoff_time():
     if os.getenv("OBS_CUTOFF"):
         return instant(os.environ["OBS_CUTOFF"])
     now = datetime.now(HK)
-    cutoff = datetime.combine(now.date(), time(10), HK)
+    cutoff = datetime.combine(now.date(), time(8), HK)
     if now < cutoff:
         cutoff -= timedelta(days=1)
     return cutoff.astimezone(UTC)

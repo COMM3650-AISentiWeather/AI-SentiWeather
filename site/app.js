@@ -1229,10 +1229,42 @@ function prepareMotion() {
 prepareMotion();
 
 /* ------------------------------------------------------------------ *
+ * countdown to the next daily refresh
+ * ------------------------------------------------------------------ */
+
+/* The scheduled job runs at 08:00 Hong Kong time and covers the window
+   ending 07:55 HKT the same morning. HKT is a fixed UTC+8 offset, so the
+   arithmetic below never has to worry about daylight saving. */
+const REFRESH_HOUR_HKT = 8;
+const HK_OFFSET_MS = 8 * 60 * 60 * 1000;
+
+function nextRefreshAt(now = Date.now()) {
+  const hkt = new Date(now + HK_OFFSET_MS);
+  const midnight = Date.UTC(hkt.getUTCFullYear(), hkt.getUTCMonth(), hkt.getUTCDate());
+  let at = midnight + REFRESH_HOUR_HKT * 3600000 - HK_OFFSET_MS;
+  if (at <= now) at += 24 * 3600000;
+  return at;
+}
+
+function startUpdateCountdown() {
+  const clock = $("nextClock");
+  if (!clock) return;
+  const tick = () => {
+    const total = Math.max(0, Math.floor((nextRefreshAt() - Date.now()) / 1000));
+    const pad = n => String(n).padStart(2, "0");
+    clock.textContent = pad(Math.floor(total / 3600)) + ":" +
+      pad(Math.floor((total % 3600) / 60)) + ":" + pad(total % 60);
+  };
+  tick();
+  setInterval(tick, 1000);
+}
+
+/* ------------------------------------------------------------------ *
  * boot
  * ------------------------------------------------------------------ */
 
 async function init() {
+  startUpdateCountdown();
   const res = await fetch("./dashboard.json", { cache: "no-cache" });
   if (!res.ok) throw new Error("Snapshot unavailable");
   data = await res.json();

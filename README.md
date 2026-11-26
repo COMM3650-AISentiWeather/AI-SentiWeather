@@ -71,7 +71,9 @@ python -m http.server 8000 --directory demo-dist
 
 ## 每日自动更新（已配置好，无需人工）
 
-`.github/workflows/observatory.yml` 每天 **00:05 UTC（08:05 HKT）** 自动运行：采集 → 保存进度 → 分析 → 构建 `docs/` → 提交回 `main`，Pages 随后自己发布。整个流程跑在 GitHub 的服务器上，本机不用开机，也不需要任何人（或 AI）盯着。比 08:00 晚五分钟是有意的：采集窗口的截止点是 08:00 HKT，留出余量可以保证每次都取到当天的新窗口，而不会退回昨天的快照。
+`.github/workflows/observatory.yml` 每天 **00:00 UTC（08:00 HKT）** 自动运行：采集 → 保存进度 → 分析 → 构建 `docs/` → 提交回 `main`，Pages 随后自己发布。整个流程跑在 GitHub 的服务器上，本机不用开机，也不需要任何人（或 AI）盯着。
+
+每次采集的窗口在前一日 07:55 HKT 到今天 07:55 HKT 之间。截止点定在 07:55 而不是 08:00：留出这五分钟，任务哪怕提前几秒启动也仍然落在当天，不会退回昨天的窗口、把站点的截止时间往回拨。首页那张情绪卡片里有一行灰色小字，实时倒数距离下一次更新的时间（香港时间与 UTC 并列）。
 
 - 想立刻更新一次：`gh workflow run observatory.yml -f operation=update`（约 10–20 分钟）。
 - 只从已保存的数据重建页面、不重新采集：`gh workflow run observatory.yml -f operation=rebuild`。

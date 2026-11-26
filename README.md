@@ -6,10 +6,10 @@ Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://comm
 
 ## 仓库与网址
 
-- 组织：<https://github.com/COMM3650-AISentiWeather>（GitHub Free 计划，Kelly 与 qiqiisverygood 都是成员）
+- 组织：<https://github.com/COMM3650-AISentiWeather>（GitHub Free 计划）。`qiqiisverygood` 是 owner；`kelly0631` 已收到成员邀请（待接受），组织成员的默认仓库权限已设为 write。
 - 代码仓库：<https://github.com/COMM3650-AISentiWeather/AI-SentiWeather>（Public）
 - 线上站点：<https://comm3650-aisentiweather.github.io/AI-SentiWeather/>（Pages 从 `main` 分支 /docs 文件夹发布）
-- 协作：两人都在组织里，可以直接推 `main`，也可以开分支发 Pull Request，另一位预览后再合并。
+- 协作：两人都在组织里，可以直接推 `main`，也可以开分支发 Pull Request，另一位预览后再合并；组织设置和 Pages 只有 owner 能改。
 
 ## 目录
 

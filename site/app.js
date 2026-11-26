@@ -289,6 +289,19 @@ const WINDOW_COPY = {
   30: ["Emotion of the month", "This month&rsquo;s AI mood"]
 };
 
+/* a paged window can hold 1–30 days, so pick the copy by size, not by exact key */
+function windowCopy(days) {
+  if (days <= 1) return WINDOW_COPY[1];
+  if (days <= 10) return WINDOW_COPY[7];
+  return WINDOW_COPY[30];
+}
+
+function pillMatches(pill, days) {
+  if (pill === 1) return days <= 1;
+  if (pill === 7) return days > 1 && days <= 10;
+  return days > 10;
+}
+
 function renderWeather(animate = true) {
   if (!data || !daySeries.length) return;
   const { start, end, rows } = windowRows();
@@ -304,7 +317,7 @@ function renderWeather(animate = true) {
     ? "No scored items"
     : score >= 0.05 ? "Positive" : score <= -0.05 ? "Negative" : "Neutral";
 
-  const copy = WINDOW_COPY[weather.days] || [WINDOW_COPY[7][0], WINDOW_COPY[7][1]];
+  const copy = windowCopy(weather.days);
   if ($("weekKicker")) $("weekKicker").textContent = copy[0];
   if ($("weekTitle")) $("weekTitle").innerHTML = copy[1];
 
@@ -393,7 +406,7 @@ function syncWeatherControls(start, end) {
   if ($("prevWindow")) $("prevWindow").disabled = !!bounds && weather.end <= bounds[0];
   if ($("nextWindow")) $("nextWindow").disabled = !!bounds && weather.end >= bounds[1];
   document.querySelectorAll(".wpills button").forEach(b => {
-    b.setAttribute("aria-pressed", String(+b.dataset.days === weather.days));
+    b.setAttribute("aria-pressed", String(pillMatches(+b.dataset.days, weather.days)));
   });
   if ($("weekDates")) $("weekDates").dataset.range = start + "/" + end;
   syncStrip();

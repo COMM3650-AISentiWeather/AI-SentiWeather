@@ -24,7 +24,7 @@ Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://comm
 
 ## 当前状态
 
-- 六个来源全部接入并在线上：NYT、Guardian、BBC 与 Hacker News、Reddit、Bluesky。数据起点是 **2026-10-01 00:00 HKT**；具体条数以 `docs/dashboard.json` 为准。
+- 六个来源全部接入：NYT、Guardian、BBC 与 Hacker News、Reddit、Bluesky。目标时间范围自 2026-10-01 香港时间起；旧数据自 11 月 1 日起，10 月数据需补采完成后才会显示为可选范围。
 - 数据每天由 GitHub Actions 自动采集并发布，不需要任何人的电脑开机。最近一次运行：`gh run list --workflow=observatory.yml`。
 - 媒体侧的 BBC 偶尔会因 Media Cloud 限流被标为 `partial`：当次仍会照常发布已有数据，下一次运行自动补齐。
 
@@ -75,9 +75,11 @@ python -m http.server 8000 --directory demo-dist
 
 每次采集的窗口在前一日 07:55 HKT 到今天 07:55 HKT 之间。截止点定在 07:55 而不是 08:00：留出这五分钟，任务哪怕提前几秒启动也仍然落在当天，不会退回昨天的窗口、把站点的截止时间往回拨。首页那张情绪卡片里有一行灰色小字，实时倒数距离下一次更新的时间（香港时间与 UTC 并列）。
 
+10 月补采按来源和查询单独记录起始覆盖时间，失败时保留先前已验证的范围并在之后重试。媒体查询移除了中文关键词和重复的 DeepSeek 版本关键词；其余产品关键词保留。BBC 的 Media Cloud 按公司合并关键词查询，RSS 仍使用单独关键词匹配，因此合并查询的命中证据记录为公司查询表达式。搜索平台对连字符或版本词的分词可能不同，合并和精简关键词可能影响召回；论坛继续使用原有关键词与抽样方法。
+
 - 想立刻更新一次：`gh workflow run observatory.yml -f operation=update`（约 10–20 分钟）。
 - 只从已保存的数据重建页面、不重新采集：`gh workflow run observatory.yml -f operation=rebuild`。
-- 补历史数据（回填）：`gh workflow run observatory.yml -f operation=backfill -f sources=reddit`。第一次运行会把媒体源的水位重置到项目起点（记在私有仓库的 `backfill.json`，只做一次），之后只采集、存档、**不发布**；回填跑完再用 `operation=rebuild` 发布。受 API 配额限制时，重复触发会从断点继续。
+- 只对部分来源补采：`gh workflow run observatory.yml -f operation=backfill -f sources=reddit`。回填会保留现有水位、保存进度但不发布，完成后可使用 `rebuild` 发布。普通 `update` 也会自动补足未完成的历史范围。
 - 运行结果：`gh run list --workflow=observatory.yml`。若某个来源 `partial`，页面照常发布，任务最后一步会标红提醒，第二天自动重试。
 - 采集进度存在私有数据仓库里，公开仓库只放图表数据。
 

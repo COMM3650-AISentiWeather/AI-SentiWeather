@@ -14,8 +14,8 @@
     document.querySelectorAll("[data-reveal]").forEach(function (el) { el.classList.add("is-in"); });
   }, 2500);
 </script>
-<link rel="stylesheet" href="./style.css?v=20261127e">
-<script defer src="./app.js?v=20261127e"></script>
+<link rel="stylesheet" href="./style.css?v=20261127f">
+<script defer src="./app.js?v=20261127f"></script>
 </head>
 <body data-page="home">
 
@@ -124,7 +124,7 @@
       </div>
       <p class="next-update" id="nextUpdate">
         <span>Next daily update at</span>
-        <span class="nu-at">08:00 HKT (00:00 UTC)</span>
+        <span class="nu-at" id="nextAt">10:05 HKT (02:05 UTC)</span>
         <span>&middot; in</span>
         <span class="nu-clock" id="nextClock">--:--:--</span>
       </p>
@@ -142,6 +142,7 @@
           <canvas id="weekStrip" height="68" aria-label="Daily average sentiment across the collected period. Scroll sideways to see more dates, click a day to move the window."></canvas>
         </div>
         <div class="strip-rail" id="stripRail"><span class="strip-thumb" id="stripThumb"></span></div>
+        <div class="strip-dates" aria-hidden="true"><span id="stripFrom">1 Oct</span><span id="stripTo">26 Nov</span></div>
         <div class="strip-tip" id="stripTip" hidden></div>
       </div>
     </div>

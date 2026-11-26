@@ -4,7 +4,7 @@ on:
     # 00:00 UTC = 08:00 HKT. Each run collects the window ending 07:55 HKT the
     # same morning, so the five minutes between the cutoff and the trigger keep
     # a run from ever falling back to yesterday's window.
-    - cron: '0 0 * * *'
+    - cron: '5 2 * * *'
   workflow_dispatch:
     inputs:
       operation:

@@ -472,18 +472,10 @@ function drawStrip(start, end) {
     }
   });
 
-  /* end labels */
-  g.fillStyle = muted;
-  g.font = "10px -apple-system, Helvetica, Arial, sans-serif";
-  g.textBaseline = "alphabetic";
-  g.textAlign = "left";
-  g.fillText(shortDay(daySeries[0].date), padX, height - 4);
-  g.textAlign = "right";
-  g.fillText(shortDay(daySeries[n - 1].date), width - padX, height - 4);
-
   stripGeometry = { width, height, padX, n, span };
   keepWindowInView(startIdx, endIdx, viewport);
   syncStripRail();
+  syncStripDates();
 }
 
 /* slide the strip so the active window is on screen, without fighting the user */
@@ -500,6 +492,20 @@ function keepWindowInView(startIdx, endIdx, viewport) {
   else if (right > scroller.scrollLeft + viewport - 10) want = right - viewport + 24;
   want = Math.max(0, Math.min(maxScroll, want));
   if (Math.abs(want - scroller.scrollLeft) > 2) scroller.scrollLeft = want;
+}
+
+/* the two edge labels describe the slice currently on screen */
+function syncStripDates() {
+  const scroller = $("stripScroll");
+  const from = $("stripFrom");
+  const to = $("stripTo");
+  if (!scroller || !from || !to || !stripGeometry || !daySeries.length) return;
+  const geom = stripGeometry;
+  const step = (geom.width - 2 * geom.padX) / Math.max(1, geom.span);
+  const first = Math.max(0, Math.min(geom.n - 1, Math.round((scroller.scrollLeft - geom.padX) / Math.max(1, step))));
+  const last = Math.max(first, Math.min(geom.n - 1, Math.round((scroller.scrollLeft + scroller.clientWidth - geom.padX) / Math.max(1, step))));
+  from.textContent = shortDay(daySeries[first].date);
+  to.textContent = shortDay(daySeries[last].date);
 }
 
 /* a rail that is always visible, because macOS hides native scrollbars */
@@ -526,7 +532,7 @@ function initStripRail() {
   const rail = $("stripRail");
   const thumb = $("stripThumb");
   if (!scroller || !rail || !thumb) return;
-  scroller.addEventListener("scroll", syncStripRail, { passive: true });
+  scroller.addEventListener("scroll", () => { syncStripRail(); syncStripDates(); }, { passive: true });
   window.addEventListener("resize", syncStripRail);
 
   let drag = null;
@@ -1336,22 +1342,30 @@ prepareMotion();
  * countdown to the next daily refresh
  * ------------------------------------------------------------------ */
 
-/* The scheduled job runs at 08:00 Hong Kong time and covers the window
-   ending 07:55 HKT the same morning. HKT is a fixed UTC+8 offset, so the
-   arithmetic below never has to worry about daylight saving. */
-const REFRESH_HOUR_HKT = 8;
+/* The scheduled job runs at 10:05 Hong Kong time, five minutes after the
+   10:00 HKT reporting cutoff. Hong Kong is a fixed UTC+8 offset, so the run
+   is 02:05 UTC and the arithmetic below never has to worry about DST. */
+const REFRESH_UTC_HOUR = 2;
+const REFRESH_UTC_MINUTE = 5;
 const HK_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 function nextRefreshAt(now = Date.now()) {
   const hkt = new Date(now + HK_OFFSET_MS);
   const midnight = Date.UTC(hkt.getUTCFullYear(), hkt.getUTCMonth(), hkt.getUTCDate());
-  let at = midnight + REFRESH_HOUR_HKT * 3600000 - HK_OFFSET_MS;
+  let at = midnight + (REFRESH_UTC_HOUR * 60 + REFRESH_UTC_MINUTE) * 60000;
   if (at <= now) at += 24 * 3600000;
   return at;
 }
 
 function startUpdateCountdown() {
   const clock = $("nextClock");
+  const at = $("nextAt");
+  if (at) {
+    const pad = n => String(n).padStart(2, "0");
+    const hktH = (REFRESH_UTC_HOUR + 8) % 24;
+    at.textContent = pad(hktH) + ":" + pad(REFRESH_UTC_MINUTE) + " HKT (" +
+      pad(REFRESH_UTC_HOUR) + ":" + pad(REFRESH_UTC_MINUTE) + " UTC)";
+  }
   if (!clock) return;
   const tick = () => {
     const total = Math.max(0, Math.floor((nextRefreshAt() - Date.now()) / 1000));

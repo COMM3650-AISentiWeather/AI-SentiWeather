@@ -772,6 +772,23 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
   cursor: grabbing;
 }
 
+/* the two edge labels follow the scroll position */
+.strip-dates {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 18px;
+  display: flex;
+  justify-content: space-between;
+  font-size: .62rem;
+  letter-spacing: .02em;
+  color: var(--gauge-text, var(--muted));
+  pointer-events: none;
+  user-select: none;
+}
+
+.strip-dates span, .strip-dates span { white-space: nowrap }
+
 
 .strip-tip {
   position: absolute;

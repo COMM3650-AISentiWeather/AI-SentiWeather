@@ -310,7 +310,7 @@ function renderWeather(animate = true) {
 
   const sameDay = start === end;
   $("weekDates").textContent = sameDay
-    ? dayLabel(end) + " · 08:00 HKT"
+    ? dayLabel(end) + (data.cutoff && end === hkdate(data.cutoff) ? " · " + new Date(data.cutoff).toLocaleTimeString("en-GB", { timeZone: "Asia/Hong_Kong", hour: "2-digit", minute: "2-digit", hour12: false }) + " HKT" : "")
     : dayLabel(start) + " – " + dayLabel(end) + " · " + weather.days + "-day window";
   const used = new Set(rows.map(r => r.platform));
   $("weekCoverage").textContent = rows.length + " scored items · " + (used.size || 0) +

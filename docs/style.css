@@ -687,6 +687,30 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
 
 .daybar .latest { margin-left: auto }
 
+/* Quiet countdown to the next scheduled refresh; deliberately low-contrast. */
+.weather-copy p.next-update {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: .38em;
+  margin-top: clamp(9px, 1.3vh, 16px);
+  color: var(--muted);
+  opacity: .6;
+  font-size: .72rem;
+  line-height: 1.5;
+  letter-spacing: .012em;
+}
+
+.next-update .nu-clock {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+
+.next-update .nu-at {
+  opacity: .78;
+  font-size: .96em;
+}
+
 .weekstrip {
   position: relative;
   width: 100%;

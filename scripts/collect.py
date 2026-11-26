@@ -35,7 +35,11 @@ SCRIPT = Path(__file__).resolve()
 
 def _selection():
     raw = os.environ.get("OBS_SOURCES", "")
-    return tuple(name.strip() for name in raw.split(",") if name.strip())
+    names = tuple(name.strip() for name in raw.split(",") if name.strip())
+    unknown = set(names) - set(MEDIA) - set(FORUM)
+    if unknown:
+        raise ValueError(f"Unknown source(s): {', '.join(sorted(unknown))}")
+    return names
 
 
 WANTED = _selection()
@@ -159,7 +163,7 @@ def forums(status):
             runs, history, "platform window_start window_end run_at status".split()
         )
         status[p] = state
-    return all(state == "ok" for state in status.values())
+    return all(status.get(p) == "ok" for p in FORUM if selected(p))
 
 
 def main():
@@ -179,6 +183,7 @@ def main():
                 ok = job.result()
                 if name in MEDIA:
                     result[name] = "ok" if ok else "partial"
+                print(f"{name}: {'ok' if ok else 'incomplete'}", flush=True)
             except Exception as exc:
                 print(f"{name} failed: {type(exc).__name__}", flush=True)
     # A run that only touches some sources must not erase the others' status.

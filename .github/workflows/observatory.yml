@@ -1,10 +1,10 @@
 name: AI SentiWeather
 on:
   schedule:
-    # 02:05 UTC = 10:05 HKT. The extra five minutes keep the runner safely past
-    # the 10:00 HKT reporting cutoff, so a run can never land on yesterday's
+    # 00:05 UTC = 08:05 HKT. The extra five minutes keep the runner safely past
+    # the 08:00 HKT reporting cutoff, so a run can never land on yesterday's
     # window and publish a snapshot that moves the site's cutoff backwards.
-    - cron: '5 2 * * *'
+    - cron: '5 0 * * *'
   workflow_dispatch:
     inputs:
       operation:

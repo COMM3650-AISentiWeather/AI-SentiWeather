@@ -1,17 +1,8 @@
-"""Reset source watermarks so a backfill re-reads the project from its first day.
+"""Inspect backfill checkpoints without altering existing watermarks.
 
-Collectors resume from a per-(company, term) watermark in ``*_state.json``.
-When the project window is extended backwards (2026-11-01 -> 2026-10-01) an
-existing watermark would keep the old queries from reaching the new month, so
-this script drops every watermark back to ``START`` once.
-
-It records what it applied in ``backfill.json``. A second run with the same
-start therefore does nothing, which keeps a backfill that times out and is
-re-dispatched resumable instead of restarting from scratch every time.
-
-Run it from the repository root with ``OBS_STATE`` pointing at the checkpoints:
-
-    python scripts/backfill_reset.py [--dry-run]
+Collectors retain a separate verified coverage start for each query and
+automatically fill the earlier period. This entry point stays available for
+existing workflow configurations, but it never resets saved progress.
 """
 
 from __future__ import annotations
@@ -30,24 +21,15 @@ MARKER = STATE / "backfill.json"
 
 
 def reset_source(name: str, start: str, dry_run: bool) -> tuple[int, int]:
-    """Lower every watermark in one source's state file to ``start``."""
+    """Inspect existing watermarks; collectors now track backfill separately."""
     folder = STATE / MEDIA[name]
     path = folder / f"{name}_state.json"
     if not path.is_file():
         print(f"{name}: no state file, nothing to reset", flush=True)
         return 0, 0
     state = json.loads(path.read_text(encoding="utf-8"))
-    lowered = sum(1 for value in state.values() if value > start)
-    if dry_run:
-        print(f"{name}: would lower {lowered} of {len(state)} watermarks", flush=True)
-        return lowered, len(state)
-    if lowered:
-        path.write_text(
-            json.dumps({key: start for key in state}, indent=2, ensure_ascii=False),
-            encoding="utf-8",
-        )
-    print(f"{name}: lowered {lowered} of {len(state)} watermarks to {start}", flush=True)
-    return lowered, len(state)
+    print(f"{name}: preserving {len(state)} watermarks; backfill runs automatically", flush=True)
+    return 0, len(state)
 
 
 def forum_windows(start: str) -> int:
@@ -70,21 +52,12 @@ def main() -> int:
             applied = json.loads(MARKER.read_text(encoding="utf-8")).get("start", "")
         except ValueError:
             applied = ""
-    if applied == start and not args.dry_run:
-        print(f"backfill from {start} already applied; leaving watermarks alone")
-        return 0
-
     print(f"backfill start: {start} (previous marker: {applied or 'none'})")
     for name in MEDIA:
         reset_source(name, start, args.dry_run)
     forum_windows(start)
 
-    if not args.dry_run:
-        MARKER.write_text(
-            json.dumps({"start": start, "note": "one-off watermark reset"}, indent=2),
-            encoding="utf-8",
-        )
-        print(f"marker written: {MARKER}")
+    print("Existing watermarks and markers were not modified.")
     return 0
 
 

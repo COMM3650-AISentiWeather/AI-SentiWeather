@@ -12,18 +12,7 @@ import requests
 # 1. 检索关键词与设置
 # ============================================================
 
-from project import KEYWORDS, cutoff_time
-
-# 香港时间 2026-10-01 00:00 对应的 UTC 时间
-START = datetime(
-    2026,
-    9,
-    30,
-    16,
-    0,
-    0,
-    tzinfo=timezone.utc,
-)
+from project import KEYWORDS, MEDIA_KEYWORDS, START, LEGACY_START, cutoff_time, coverage_starts, save_coverage_starts
 
 GUARDIAN_URL = "https://content.guardianapis.com/search"
 
@@ -290,6 +279,7 @@ def run_guardian_collection(api_key, folder):
     match_path = folder / "guardian_query_matches.csv"
     log_path = folder / "guardian_collection_runs.csv"
     state_path = folder / "guardian_state.json"
+    starts = coverage_starts(folder, "guardian")
 
     articles = {row["id"]: row for row in read_csv(article_path)}
 
@@ -313,9 +303,10 @@ def run_guardian_collection(api_key, folder):
         for article in articles.values():
             published = parse_time(article["published_at"])
 
-            for company, terms in KEYWORDS.items():
+            for company, terms in MEDIA_KEYWORDS.items():
                 covered = all(
                     company + "|" + term in state
+                    and parse_time(starts.get(company + "|" + term, format_utc(LEGACY_START))) <= published
                     and parse_time(state[company + "|" + term]) > published
                     for term in terms
                 )
@@ -341,7 +332,7 @@ def run_guardian_collection(api_key, folder):
     print(f"输出文件夹：{folder}")
     print("-" * 60)
 
-    for company, terms in KEYWORDS.items():
+    for company, terms in MEDIA_KEYWORDS.items():
         for term in terms:
             state_key = company + "|" + term
 
@@ -355,6 +346,8 @@ def run_guardian_collection(api_key, folder):
                 START.date(),
                 (previous - timedelta(days=2)).date(),
             )
+            if parse_time(starts.get(state_key, format_utc(LEGACY_START))) > START:
+                first_day = START.date()
 
             print(f"采集 {company} / {term}，" f"{first_day} 至 {cutoff.date()}")
 
@@ -487,6 +480,8 @@ def run_guardian_collection(api_key, folder):
                     encoding="utf-8",
                 )
                 os.replace(temp_path, state_path)
+                starts[state_key] = format_utc(START)
+                save_coverage_starts(folder, "guardian", starts)
 
                 sync_articles()
 

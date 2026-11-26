@@ -186,7 +186,7 @@ def collect_hacker_news_long() -> dict:
 
     log(f"HN long done: {len(rows)} rows, errors={len(errors)}, stats={stats}")
     return _payload(
-        "hacker_news", rows, errors, run_at, {"window": "2026-11-01+", "stats": stats}
+        "hacker_news", rows, errors, run_at, {"window": "2026-10-01+", "stats": stats}
     )
 
 
@@ -235,7 +235,7 @@ def collect_bluesky_long() -> dict:
 
     log(f"Bluesky long done: {len(rows)} rows, errors={len(errors)}, stats={stats}")
     return _payload(
-        "bluesky", rows, errors, run_at, {"window": "2026-11-01+", "stats": stats}
+        "bluesky", rows, errors, run_at, {"window": "2026-10-01+", "stats": stats}
     )
 
 
@@ -312,7 +312,7 @@ def collect_reddit_long() -> dict:
 
     log(f"Reddit long done: {len(rows)} rows, errors={len(errors)}, stats={stats}")
     return _payload(
-        "reddit", rows, errors, run_at, {"window": "2026-11-01+", "stats": stats}
+        "reddit", rows, errors, run_at, {"window": "2026-10-01+", "stats": stats}
     )
 
 

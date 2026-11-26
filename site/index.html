@@ -14,8 +14,8 @@
     document.querySelectorAll("[data-reveal]").forEach(function (el) { el.classList.add("is-in"); });
   }, 2500);
 </script>
-<link rel="stylesheet" href="./style.css?v=20261127d">
-<script defer src="./app.js?v=20261127d"></script>
+<link rel="stylesheet" href="./style.css?v=20261127e">
+<script defer src="./app.js?v=20261127e"></script>
 </head>
 <body data-page="home">
 
@@ -127,11 +127,6 @@
         <span class="nu-at">08:00 HKT (00:00 UTC)</span>
         <span>&middot; in</span>
         <span class="nu-clock" id="nextClock">--:--:--</span>
-        <span class="strip-nav">
-          <button class="strip-step" id="stripPrev" type="button" aria-label="Previous 30 days">‹</button>
-          <span class="strip-page" id="stripPage">1 / 1</span>
-          <button class="strip-step" id="stripNext" type="button" aria-label="Next 30 days">›</button>
-        </span>
       </p>
     </div>
     <div class="instrument">
@@ -142,9 +137,11 @@
       </div>
     </div>
     <div class="weather-foot">
-      <div class="weekstrip" title="Drag left or right, or use the arrows, to browse dates">
-        <canvas id="weekStrip" height="76" aria-label="Daily average sentiment across the collected period, grouped into 30-day blocks."></canvas>
-        <input type="range" id="stripRange" class="strip-range" min="0" max="0" step="1" value="0" aria-label="Choose a 30-day block">
+      <div class="weekstrip">
+        <div class="strip-scroll" id="stripScroll">
+          <canvas id="weekStrip" height="68" aria-label="Daily average sentiment across the collected period. Scroll sideways to see more dates, click a day to move the window."></canvas>
+        </div>
+        <div class="strip-rail" id="stripRail"><span class="strip-thumb" id="stripThumb"></span></div>
         <div class="strip-tip" id="stripTip" hidden></div>
       </div>
     </div>

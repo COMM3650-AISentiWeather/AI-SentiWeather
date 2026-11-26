@@ -333,75 +333,6 @@ function renderWeather(animate = true) {
   drawStrip(start, end);
 }
 
-/* the strip shows one 30-day page at a time; the slider pages through them */
-const STRIP_BLOCK = 30;
-
-function stripPages() {
-  const pages = [];
-  for (let i = 0; i < daySeries.length; i += STRIP_BLOCK) {
-    const last = daySeries[Math.min(daySeries.length - 1, i + STRIP_BLOCK - 1)];
-    pages.push({ from: i, to: Math.min(daySeries.length - 1, i + STRIP_BLOCK - 1), start: daySeries[i].date, end: last.date });
-  }
-  return pages;
-}
-
-function pageIndexForEnd(end) {
-  const pages = stripPages();
-  if (!pages.length) return 0;
-  const found = pages.findIndex(page => page.end >= end);
-  return found < 0 ? pages.length - 1 : found;
-}
-
-function pageIndexOfCurrent() {
-  const pages = stripPages();
-  if (!pages.length) return -1;
-  return pageIndexForEnd(weather.end);
-}
-
-function syncStrip() {
-  const el = $("stripRange");
-  if (!el) return;
-  const pages = stripPages();
-  if (!pages.length) {
-    el.disabled = true;
-    return;
-  }
-  el.disabled = pages.length < 2;
-  el.min = "0";
-  el.max = String(pages.length - 1);
-  const idx = pageIndexForEnd(weather.end);
-  el.value = String(idx);
-  const page = pages[idx];
-  el.setAttribute("aria-valuetext",
-    shortDay(page.start) + " to " + shortDay(page.end) + ", page " + (idx + 1) + " of " + pages.length);
-  el.title = shortDay(page.start) + " – " + shortDay(page.end);
-  if ($("stripPage")) $("stripPage").textContent = (idx + 1) + " / " + pages.length;
-  if ($("stripPrev")) $("stripPrev").disabled = idx <= 0;
-  if ($("stripNext")) $("stripNext").disabled = idx >= pages.length - 1;
-}
-
-function selectStripPage(index) {
-  const pages = stripPages();
-  const page = pages[index];
-  if (!page) return;
-  const full = page.to - page.from + 1;
-  weather.days = full >= STRIP_BLOCK ? STRIP_BLOCK : full;
-  weather.end = clampEnd(page.end);
-  renderWeather();
-  saveWeatherState();
-  const tip = $("stripTip");
-  const el = $("stripRange");
-  if (tip && el) {
-    tip.hidden = false;
-    tip.textContent = shortDay(page.start) + " – " + shortDay(page.end);
-    const box = el.getBoundingClientRect();
-    const ratio = pages.length > 1 ? index / (pages.length - 1) : 0;
-    tip.style.left = (12 + ratio * Math.max(0, box.width - 24)) + "px";
-    clearTimeout(selectStripPage.timer);
-    selectStripPage.timer = setTimeout(() => { tip.hidden = true; }, 1500);
-  }
-}
-
 function syncWeatherControls(start, end) {
   const bounds = coverageBounds();
   const input = $("weekDate");
@@ -418,7 +349,6 @@ function syncWeatherControls(start, end) {
     b.setAttribute("aria-pressed", String(pillMatches(+b.dataset.days, weather.days)));
   });
   if ($("weekDates")) $("weekDates").dataset.range = start + "/" + end;
-  syncStrip();
 }
 
 function stepWindow(days) {
@@ -453,33 +383,29 @@ function saveWeatherState() {
 }
 
 /* the timeline strip: daily means, the active window, and click-to-jump */
+const STRIP_VISIBLE_DAYS = 30;
+
 function drawStrip(start, end) {
   const c = $("weekStrip");
-  if (!c || !daySeries.length) return;
+  const scroller = $("stripScroll");
+  if (!c || !scroller || !daySeries.length) return;
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
-  const width = c.clientWidth || c.parentElement.clientWidth || 720;
-  const height = Math.round(parseFloat(getComputedStyle(c).height)) || 76;
+  const height = Math.round(parseFloat(getComputedStyle(c).height)) || 68;
+  const viewport = scroller.clientWidth || c.parentElement.clientWidth || 720;
+  const n = daySeries.length;
+  /* 30 days always fill the visible width; everything else waits off-screen */
+  const width = Math.max(viewport, Math.round((n * viewport) / STRIP_VISIBLE_DAYS));
+  c.style.width = width + "px";
   c.width = Math.round(width * dpr);
   c.height = Math.round(height * dpr);
   const g = c.getContext("2d");
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, width, height);
 
-  const padX = 14, padTop = 14, padBottom = 20;
-  const n = daySeries.length;
-  let endIdx = -1;
-  for (let i = 0; i < n; i++) if (daySeries[i].date <= end) endIdx = i;
-  if (endIdx < 0) endIdx = n - 1;
-
-  /* only one 30-day page is on screen; the slider chooses which page */
-  const page = Math.min(Math.max(0, Math.floor(endIdx / STRIP_BLOCK)), Math.max(0, Math.ceil(n / STRIP_BLOCK) - 1));
-  const from = page * STRIP_BLOCK;
-  const to = Math.min(n - 1, from + STRIP_BLOCK - 1);
-  const slots = Math.max(1, to - from);
-  const x = offset => padX + (width - 2 * padX) * (offset / slots);
-
-  const pageDays = daySeries.slice(from, to + 1);
-  const extremes = pageDays.filter(d => d.mean != null).map(d => Math.abs(d.mean));
+  const padX = 12, padTop = 14, padBottom = 20;
+  const span = Math.max(1, n - 1);
+  const x = i => padX + (width - 2 * padX) * (i / span);
+  const extremes = daySeries.filter(d => d.mean != null).map(d => Math.abs(d.mean));
   const scale = Math.min(1, Math.max(0.35, (Math.max(0, ...extremes) || 0.2) * 1.25));
   const y = v => padTop + (height - padTop - padBottom) * (1 - (v + scale) / (2 * scale));
   const pos = cssVar("--pos", "#1c7a6c");
@@ -491,17 +417,16 @@ function drawStrip(start, end) {
 
   let startIdx = daySeries.findIndex(d => d.date >= start);
   if (startIdx < 0) startIdx = 0;
-  const bandStart = Math.max(from, startIdx) - from;
-  const bandEnd = Math.min(to, endIdx) - from;
+  let endIdx = -1;
+  for (let i = 0; i < n; i++) if (daySeries[i].date <= end) endIdx = i;
+  if (endIdx < 0) endIdx = n - 1;
 
   /* selected window: soft band */
-  if (bandEnd >= bandStart) {
-    const bandLeft = Math.max(padX - 6, x(bandStart) - 3);
-    const bandRight = Math.min(width - padX + 6, x(bandEnd) + 3);
-    g.fillStyle = withAlpha(mood, 0.10);
-    roundRect(g, bandLeft, 4, Math.max(8, bandRight - bandLeft), height - 8, 8);
-    g.fill();
-  }
+  const bandLeft = Math.max(padX - 6, x(startIdx) - 3);
+  const bandRight = Math.min(width - padX + 6, x(endIdx) + 3);
+  g.fillStyle = withAlpha(mood, 0.10);
+  roundRect(g, bandLeft, 4, Math.max(8, bandRight - bandLeft), height - 8, 8);
+  g.fill();
 
   /* the -1 / 0 / +1 grid */
   g.strokeStyle = withAlpha(ink, 0.10);
@@ -519,43 +444,122 @@ function drawStrip(start, end) {
   g.lineJoin = "round";
   g.beginPath();
   let drawing = false;
-  pageDays.forEach((point, offset) => {
+  daySeries.forEach((point, i) => {
     if (point.mean == null) {
       drawing = false;
       return;
     }
-    if (drawing) g.lineTo(x(offset), y(point.mean));
-    else g.moveTo(x(offset), y(point.mean));
+    if (drawing) g.lineTo(x(i), y(point.mean));
+    else g.moveTo(x(i), y(point.mean));
     drawing = true;
   });
   g.stroke();
 
   /* a dot per day, coloured by where it lands */
-  pageDays.forEach((point, offset) => {
+  daySeries.forEach((point, i) => {
     if (point.mean == null) return;
     const colour = point.mean >= 0.05 ? pos : point.mean <= -0.05 ? neg : neu;
-    const isEnd = from + offset === endIdx;
     g.beginPath();
-    g.arc(x(offset), y(point.mean), isEnd ? 4.4 : 2.6, 0, Math.PI * 2);
+    g.arc(x(i), y(point.mean), i === endIdx ? 4.4 : 2.6, 0, Math.PI * 2);
     g.fillStyle = colour;
     g.fill();
-    if (isEnd) {
+    if (i === endIdx) {
       g.beginPath();
-      g.arc(x(offset), y(point.mean), 7.5, 0, Math.PI * 2);
+      g.arc(x(i), y(point.mean), 7.5, 0, Math.PI * 2);
       g.strokeStyle = withAlpha(colour, 0.55);
       g.lineWidth = 1.4;
       g.stroke();
     }
   });
 
-  /* page labels */
+  /* end labels */
   g.fillStyle = muted;
   g.font = "10px -apple-system, Helvetica, Arial, sans-serif";
   g.textBaseline = "alphabetic";
   g.textAlign = "left";
-  g.fillText(shortDay(pageDays[0].date), padX, height - 4);
+  g.fillText(shortDay(daySeries[0].date), padX, height - 4);
   g.textAlign = "right";
-  g.fillText(shortDay(pageDays[pageDays.length - 1].date), x(pageDays.length - 1), height - 4);
+  g.fillText(shortDay(daySeries[n - 1].date), width - padX, height - 4);
+
+  stripGeometry = { width, height, padX, n, span };
+  keepWindowInView(startIdx, endIdx, viewport);
+  syncStripRail();
+}
+
+/* slide the strip so the active window is on screen, without fighting the user */
+function keepWindowInView(startIdx, endIdx, viewport) {
+  const scroller = $("stripScroll");
+  if (!scroller || !stripGeometry) return;
+  const geom = stripGeometry;
+  const at = i => geom.padX + (geom.width - 2 * geom.padX) * (i / geom.span);
+  const left = at(startIdx);
+  const right = at(endIdx);
+  const maxScroll = Math.max(0, scroller.scrollWidth - scroller.clientWidth);
+  let want = scroller.scrollLeft;
+  if (left < scroller.scrollLeft + 10) want = left - 24;
+  else if (right > scroller.scrollLeft + viewport - 10) want = right - viewport + 24;
+  want = Math.max(0, Math.min(maxScroll, want));
+  if (Math.abs(want - scroller.scrollLeft) > 2) scroller.scrollLeft = want;
+}
+
+/* a rail that is always visible, because macOS hides native scrollbars */
+function syncStripRail() {
+  const scroller = $("stripScroll");
+  const rail = $("stripRail");
+  const thumb = $("stripThumb");
+  if (!scroller || !rail || !thumb) return;
+  const max = scroller.scrollWidth - scroller.clientWidth;
+  if (max <= 2) {
+    rail.hidden = true;
+    return;
+  }
+  rail.hidden = false;
+  const trackW = rail.clientWidth || 1;
+  const width = Math.max(30, Math.round(trackW * (scroller.clientWidth / scroller.scrollWidth)));
+  thumb.style.width = width + "px";
+  const travel = Math.max(1, trackW - width);
+  thumb.style.transform = "translateX(" + Math.round((scroller.scrollLeft / max) * travel) + "px)";
+}
+
+function initStripRail() {
+  const scroller = $("stripScroll");
+  const rail = $("stripRail");
+  const thumb = $("stripThumb");
+  if (!scroller || !rail || !thumb) return;
+  scroller.addEventListener("scroll", syncStripRail, { passive: true });
+  window.addEventListener("resize", syncStripRail);
+
+  let drag = null;
+  const scrollTo = clientX => {
+    const trackW = rail.clientWidth;
+    const width = thumb.offsetWidth;
+    const travel = Math.max(1, trackW - width);
+    const left = clientX - rail.getBoundingClientRect().left - width / 2;
+    const ratio = Math.max(0, Math.min(1, left / travel));
+    scroller.scrollLeft = ratio * (scroller.scrollWidth - scroller.clientWidth);
+  };
+
+  thumb.addEventListener("pointerdown", event => {
+    drag = { x: event.clientX, scroll: scroller.scrollLeft };
+    thumb.setPointerCapture?.(event.pointerId);
+    event.preventDefault();
+  });
+  thumb.addEventListener("pointermove", event => {
+    if (!drag) return;
+    const trackW = rail.clientWidth - thumb.offsetWidth;
+    const max = scroller.scrollWidth - scroller.clientWidth;
+    scroller.scrollLeft = drag.scroll + ((event.clientX - drag.x) / Math.max(1, trackW)) * max;
+    event.preventDefault();
+  });
+  const stop = () => { drag = null; };
+  thumb.addEventListener("pointerup", stop);
+  thumb.addEventListener("pointercancel", stop);
+
+  rail.addEventListener("pointerdown", event => {
+    if (event.target === thumb) return;
+    scrollTo(event.clientX);
+    event.preventDefault();
+  });
 }
 
 function shortDay(date) {
@@ -622,51 +626,37 @@ function initWeatherControls() {
     };
   }
 
-  const range = $("stripRange");
-  if (range) {
-    range.addEventListener("input", () => selectStripPage(+range.value));
-  }
-
-  /* the whole strip is the drag surface, so a mouse or a finger can scrub dates */
   const strip = $("weekStrip");
-  if (strip) {
-    let dragging = false;
-    let lastPage = -1;
-    const pageAt = clientX => {
-      const pages = stripPages();
-      if (pages.length < 2) return -1;
-      const box = strip.getBoundingClientRect();
-      const ratio = (clientX - box.left) / Math.max(1, box.width);
-      return Math.min(pages.length - 1, Math.max(0, Math.round(ratio * (pages.length - 1))));
+  const tip = $("stripTip");
+  if (strip && tip) {
+    const pointAt = clientX => {
+      const index = stripIndexAt(clientX);
+      if (index < 0 || !stripGeometry) return null;
+      return { index, geom: stripGeometry };
     };
-    const scrub = clientX => {
-      const index = pageAt(clientX);
-      if (index < 0 || index === lastPage) return;
-      lastPage = index;
-      selectStripPage(index);
-    };
-    strip.parentElement.addEventListener("pointerdown", event => {
-      if (event.button != null && event.button !== 0) return;
-      dragging = true;
-      lastPage = pageIndexOfCurrent();
-      strip.parentElement.setPointerCapture?.(event.pointerId);
-      scrub(event.clientX);
-      event.preventDefault();
+    strip.addEventListener("mousemove", event => {
+      const hit = pointAt(event.clientX);
+      if (!hit) return;
+      const { index, geom } = hit;
+      const point = daySeries[index];
+      tip.hidden = false;
+      tip.textContent = shortDay(point.date) + " · " +
+        (point.mean == null ? "no scored items" : (point.mean >= 0 ? "+" : "") + point.mean.toFixed(2)) +
+        " · " + point.n + " items";
+      const canvasBox = strip.getBoundingClientRect();
+      const hostBox = tip.parentElement.getBoundingClientRect();
+      const left = canvasBox.left - hostBox.left + geom.padX + (geom.width - 2 * geom.padX) * (index / geom.span);
+      tip.style.left = Math.min(Math.max(18, left), hostBox.width - 18) + "px";
     });
-    strip.parentElement.addEventListener("pointermove", event => {
-      if (!dragging) return;
-      scrub(event.clientX);
-      event.preventDefault();
+    strip.addEventListener("mouseleave", () => { tip.hidden = true; });
+    strip.addEventListener("click", event => {
+      const hit = pointAt(event.clientX);
+      if (!hit) return;
+      weather.end = clampEnd(daySeries[hit.index].date);
+      renderWeather();
+      saveWeatherState();
     });
-    const stop = () => { dragging = false; };
-    strip.parentElement.addEventListener("pointerup", stop);
-    strip.parentElement.addEventListener("pointercancel", stop);
   }
-
-  const prevPage = $("stripPrev");
-  const nextPage = $("stripNext");
-  if (prevPage) prevPage.onclick = () => selectStripPage(pageIndexOfCurrent() - 1);
-  if (nextPage) nextPage.onclick = () => selectStripPage(pageIndexOfCurrent() + 1);
 }
 
 function initHome() {
@@ -676,6 +666,7 @@ function initHome() {
   weather.end = clampEnd(params.get("date") || null);
   buildDaySeries();
   initWeatherControls();
+  initStripRail();
   renderWeather(false);
   const scheme = window.matchMedia("(prefers-color-scheme: dark)");
   const redraw = () => {

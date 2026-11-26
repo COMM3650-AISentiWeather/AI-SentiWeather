@@ -890,10 +890,15 @@ function renderReport() {
       })), { barmode: "stack", yaxis: { title: { text: "Scored items" } } }));
       const grid = el("div", null, "piegrid");
       panel.append(grid);
-      for (const g of groups) {
+      /* Lay every card out first: Plotly measures its container when it draws,
+         so a card must already sit in its final grid column. */
+      const cards = groups.map(g => {
         const card = el("div");
         grid.append(card);
         card.append(el("h3", g.name));
+        return { card, g };
+      });
+      for (const { card, g } of cards) {
         const ns = attitudes.map(a => count(g, a));
         if (ns.some(Boolean)) {
           tasks.push(makeChart(card, [{
@@ -941,7 +946,12 @@ function renderReport() {
       }
     }
   }
-  lastDraw = Promise.all(tasks).catch(() => {
+  lastDraw = Promise.all(tasks).then(() => {
+    if (seq !== renderVersion) return;
+    parent.querySelectorAll(".plot").forEach(div => {
+      if (div.data) Plotly.Plots.resize(div);
+    });
+  }).catch(() => {
     if (seq === renderVersion && $("exportStatus")) $("exportStatus").textContent = "A chart could not render. Reload to retry.";
   });
 }

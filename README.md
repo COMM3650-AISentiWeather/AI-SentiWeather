@@ -1,14 +1,15 @@
 # AI SentiWeather · COMM3650
 
-Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://qiqiisverygood.github.io/AI-SentiWeather/>
+Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://comm3650-aisentiweather.github.io/AI-SentiWeather/>
 
 首页是「媒体 / AI」时间线与情绪仪表盘，毛玻璃界面会跟随系统浅色 / 深色外观自动切换，顶部每个图标都可以点进对应公司的官网。仪表盘可以用 `‹ ›`、日期选择器或时间轴上的任意一天回看过去窗口的情绪分数，也能切换 1 天 / 7 天 / 30 天窗口；当前日期会写进网址（例如 `?date=2026-11-20&days=1`），可以直接分享；点击 **Get Start!** 进入选择页，左选平台、右选公司，点 **GO!** 生成比较报告。报告包含数量、平均情绪、情绪分布、情绪走势、高频词和代表发言六个板块，并可导出 PDF / PNG / CSV。
 
 ## 仓库与网址
 
-- 线上站点：<https://qiqiisverygood.github.io/AI-SentiWeather/>（Pages 从 `qiqiisverygood/AI-SentiWeather` 的 `main` 分支 /docs 文件夹发布）
-- 代码同样推送到 <https://github.com/kelly0631/COMM3650>。这个仓库目前是 Private，你的账号只有 Write 权限，所以它的 Pages 暂时开不了；等它改成 Public（或改名为 AI-SentiWeather）后，把 Pages 指向 `main` /docs 就能用 `kelly0631.github.io/COMM3650`。
-- 本机仓库的 `origin` 配置了**两个 push 地址**，`git push origin main` 会同时更新两个仓库。
+- 组织：<https://github.com/COMM3650-AISentiWeather>（GitHub Free 计划，Kelly 与 qiqiisverygood 都是成员）
+- 代码仓库：<https://github.com/COMM3650-AISentiWeather/AI-SentiWeather>（Public）
+- 线上站点：<https://comm3650-aisentiweather.github.io/AI-SentiWeather/>（Pages 从 `main` 分支 /docs 文件夹发布）
+- 协作：两人都在组织里，可以直接推 `main`，也可以开分支发 Pull Request，另一位预览后再合并。
 
 ## 目录
 
@@ -66,7 +67,7 @@ python -m http.server 8000 --directory demo-dist
 - Source 选 **Deploy from a branch**
 - Branch 选 **main**，文件夹选 **/docs**
 
-改完保存，几十秒后 <https://qiqiisverygood.github.io/AI-SentiWeather/> 即可访问。
+改完保存，几十秒后 <https://comm3650-aisentiweather.github.io/AI-SentiWeather/> 即可访问。
 
 ## 每日采集（可选，需先配置 Key）
 

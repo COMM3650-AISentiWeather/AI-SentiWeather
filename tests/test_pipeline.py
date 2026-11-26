@@ -13,6 +13,14 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
 class PipelineTests(unittest.TestCase):
+    def test_source_selection_rejects_misspellings(self):
+        import collect
+        with patch.dict("os.environ", {"OBS_SOURCES": "nyt,unknown"}):
+            with self.assertRaisesRegex(ValueError, "unknown"):
+                collect._selection()
+        with patch.dict("os.environ", {"OBS_SOURCES": "nyt, reddit"}):
+            self.assertEqual(collect._selection(), ("nyt", "reddit"))
+
     def test_backfill_preparation_preserves_existing_watermarks(self):
         import backfill_reset
         import json

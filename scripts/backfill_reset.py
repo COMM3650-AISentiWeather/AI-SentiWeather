@@ -1,8 +1,7 @@
-"""Inspect backfill checkpoints without altering existing watermarks.
+"""Inspect backfill preparation, or explicitly restore saved watermarks.
 
-Collectors retain a separate verified coverage start for each query and
-automatically fill the earlier period. This entry point stays available for
-existing workflow configurations, but it never resets saved progress.
+Collectors track historical coverage starts separately, so ordinary backfill
+must not reset forward watermarks. A restore remains available with --to.
 """
 
 from __future__ import annotations
@@ -13,7 +12,7 @@ import os
 import sys
 from pathlib import Path
 
-from project import MEDIA, START, iso, read_rows
+from project import MEDIA, START, instant, iso, read_rows
 
 ROOT = Path(__file__).resolve().parents[1]
 STATE = Path(os.environ.get("OBS_STATE", ROOT / "private-data")).resolve()
@@ -21,15 +20,24 @@ MARKER = STATE / "backfill.json"
 
 
 def reset_source(name: str, start: str, dry_run: bool) -> tuple[int, int]:
-    """Inspect existing watermarks; collectors now track backfill separately."""
+    """Set every watermark in one source's state file to ``start``."""
     folder = STATE / MEDIA[name]
     path = folder / f"{name}_state.json"
     if not path.is_file():
         print(f"{name}: no state file, nothing to reset", flush=True)
         return 0, 0
     state = json.loads(path.read_text(encoding="utf-8"))
-    print(f"{name}: preserving {len(state)} watermarks; backfill runs automatically", flush=True)
-    return 0, len(state)
+    changed = sum(1 for value in state.values() if value != start)
+    if dry_run:
+        print(f"{name}: would pin {changed} of {len(state)} watermarks", flush=True)
+        return changed, len(state)
+    if changed:
+        path.write_text(
+            json.dumps({key: start for key in state}, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+    print(f"{name}: pinned {changed} of {len(state)} watermarks to {start}", flush=True)
+    return changed, len(state)
 
 
 def forum_windows(start: str) -> int:
@@ -43,21 +51,46 @@ def forum_windows(start: str) -> int:
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dry-run", action="store_true")
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Apply even when the marker already records this start",
+    )
+    parser.add_argument(
+        "--to",
+        default="",
+        help="ISO instant to pin every watermark to; omit for a non-mutating check",
+    )
     args = parser.parse_args()
 
-    start = iso(START)
+    if not args.to.strip():
+        if args.force:
+            parser.error("--force requires an explicit --to timestamp")
+        print("Backfill uses separate coverage checkpoints; existing watermarks are preserved.")
+        forum_windows(iso(START))
+        return 0
+    start = iso(instant(args.to))
     applied = ""
     if MARKER.is_file():
         try:
             applied = json.loads(MARKER.read_text(encoding="utf-8")).get("start", "")
         except ValueError:
             applied = ""
+    if applied == start and not (args.dry_run or args.force):
+        print(f"backfill from {start} already applied; leaving watermarks alone")
+        return 0
+
     print(f"backfill start: {start} (previous marker: {applied or 'none'})")
     for name in MEDIA:
         reset_source(name, start, args.dry_run)
     forum_windows(start)
 
-    print("Existing watermarks and markers were not modified.")
+    if not args.dry_run:
+        MARKER.write_text(
+            json.dumps({"start": start, "note": "one-off watermark reset"}, indent=2),
+            encoding="utf-8",
+        )
+        print(f"marker written: {MARKER}")
     return 0
 
 

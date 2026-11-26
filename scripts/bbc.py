@@ -635,7 +635,7 @@ def run_bbc_collection(api_key, output_folder):
 
             except Exception as exc:
                 # 只记录错误类型，避免意外输出凭证。
-                record["error"] = type(exc).__name__
+                record["error"] = type(exc).__name__ + (f" HTTP {getattr(getattr(exc, 'response', None), 'status_code', 'unknown')}" if getattr(exc, 'response', None) is not None else "")
 
                 print(f"  查询未完成：{record['error']}。" "下次运行会重试。")
 

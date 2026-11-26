@@ -762,6 +762,19 @@ function makeChart(parent, traces, overrides = {}) {
     width: 1000,
     height: 480
   });
+  /* A grid column can settle after Plotly has measured it (fonts, scrollbars,
+     a neighbouring card). Watch the box and re-measure whenever it changes. */
+  if ("ResizeObserver" in window) {
+    let lastWidth = 0;
+    const observer = new ResizeObserver(entries => {
+      const width = Math.round(entries[0].contentRect.width);
+      if (!div.data || !width || width === lastWidth) return;
+      lastWidth = width;
+      Plotly.Plots.resize(div);
+    });
+    observer.observe(div);
+    div._resizeObserver = observer;
+  }
   return Plotly.newPlot(div, traces, layout, { responsive: true, displayModeBar: false, displaylogo: false });
 }
 
@@ -825,7 +838,10 @@ function renderReport() {
   $("subtitle").textContent = dates.join(" to ") + " · Hong Kong time · " + selectedRows.length + " distinct items";
   $("reportNote").textContent = "Forum counts are samples. Scores estimate text tone using an English lexicon. Media scores use headlines. " + statusText();
   const parent = $("charts");
-  parent.querySelectorAll(".plot").forEach(d => Plotly.purge(d));
+  parent.querySelectorAll(".plot").forEach(d => {
+    if (d._resizeObserver) d._resizeObserver.disconnect();
+    Plotly.purge(d);
+  });
   parent.replaceChildren();
   const buckets = new Set();
   for (let d = dates[0]; d <= dates[1]; d = shift(d, 1)) buckets.add(bucket(d));

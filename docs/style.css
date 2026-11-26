@@ -714,7 +714,15 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
 .weekstrip {
   position: relative;
   width: 100%;
+  cursor: grab;
+  user-select: none;
+  touch-action: none;
 }
+
+.weekstrip:active { cursor: grabbing }
+
+.weekstrip:hover .strip-range::-webkit-slider-thumb,
+.weekstrip:hover .strip-range::-moz-range-thumb { scale: 1.15 }
 
 .weekstrip canvas {
   display: block;
@@ -730,27 +738,25 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
   right: 3px;
   top: 50%;
   width: calc(100% - 6px);
-  height: 40px;
+  height: 58px;
   margin: 0;
   transform: translateY(-50%);
   appearance: none;
   -webkit-appearance: none;
   background: transparent;
-  cursor: grab;
+  pointer-events: none;
 }
-
-.strip-range:active { cursor: grabbing }
 
 .strip-range:disabled { opacity: .45; cursor: default }
 
 .strip-range::-webkit-slider-runnable-track {
-  height: 40px;
+  height: 58px;
   background: transparent;
   border: 0;
 }
 
 .strip-range::-moz-range-track {
-  height: 40px;
+  height: 58px;
   background: transparent;
   border: 0;
 }
@@ -760,7 +766,7 @@ a.tile:hover { box-shadow: 0 26px 56px rgba(16, 44, 38, .22), var(--glass-inner)
   appearance: none;
   width: 18px;
   height: 18px;
-  margin-top: 8px;
+  margin-top: 17px;
   border-radius: 50%;
   background: var(--card);
   border: 3px solid var(--mood, var(--teal));

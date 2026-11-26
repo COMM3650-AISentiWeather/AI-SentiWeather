@@ -352,6 +352,12 @@ function pageIndexForEnd(end) {
   return found < 0 ? pages.length - 1 : found;
 }
 
+function pageIndexOfCurrent() {
+  const pages = stripPages();
+  if (!pages.length) return -1;
+  return pageIndexForEnd(weather.end);
+}
+
 function syncStrip() {
   const el = $("stripRange");
   if (!el) return;
@@ -616,6 +622,42 @@ function initWeatherControls() {
   const range = $("stripRange");
   if (range) {
     range.addEventListener("input", () => selectStripPage(+range.value));
+  }
+
+  /* the whole strip is the drag surface, so a mouse or a finger can scrub dates */
+  const strip = $("weekStrip");
+  if (strip) {
+    let dragging = false;
+    let lastPage = -1;
+    const pageAt = clientX => {
+      const pages = stripPages();
+      if (pages.length < 2) return -1;
+      const box = strip.getBoundingClientRect();
+      const ratio = (clientX - box.left) / Math.max(1, box.width);
+      return Math.min(pages.length - 1, Math.max(0, Math.round(ratio * (pages.length - 1))));
+    };
+    const scrub = clientX => {
+      const index = pageAt(clientX);
+      if (index < 0 || index === lastPage) return;
+      lastPage = index;
+      selectStripPage(index);
+    };
+    strip.parentElement.addEventListener("pointerdown", event => {
+      if (event.button != null && event.button !== 0) return;
+      dragging = true;
+      lastPage = pageIndexOfCurrent();
+      strip.parentElement.setPointerCapture?.(event.pointerId);
+      scrub(event.clientX);
+      event.preventDefault();
+    });
+    strip.parentElement.addEventListener("pointermove", event => {
+      if (!dragging) return;
+      scrub(event.clientX);
+      event.preventDefault();
+    });
+    const stop = () => { dragging = false; };
+    strip.parentElement.addEventListener("pointerup", stop);
+    strip.parentElement.addEventListener("pointercancel", stop);
   }
 }
 

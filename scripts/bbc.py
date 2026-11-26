@@ -220,8 +220,33 @@ def run_bbc_collection(api_key, output_folder):
     folder.mkdir(parents=True, exist_ok=True)
 
     search = mediacloud.api.SearchApi(api_key)
-    http = requests.Session()
+    time = __import__("time"); http = requests.Session()
+    last_request = [None]
+    blocked = [None]
 
+    def paced_story_list(*args, **kwargs):
+        """Limit search requests and retry temporary rate limits."""
+        if blocked[0] is not None:
+            raise blocked[0]
+        for attempt in range(3):
+            if last_request[0] is not None:
+                wait = 31 - (time.monotonic() - last_request[0])
+                if wait > 0:
+                    time.sleep(wait)
+            last_request[0] = time.monotonic()
+            try:
+                return search.story_list(*args, **kwargs)
+            except Exception as exc:
+                response = getattr(exc, "response", None)
+                if response is None or getattr(response, "status_code", None) != 429:
+                    raise
+                if attempt == 2:
+                    blocked[0] = exc
+                    raise
+                header = response.headers.get("Retry-After", "")
+                delay = min(120, max(65, int(header))) if header.isdigit() else 65
+                print(f"Media Cloud 限流，等待 {delay} 秒后重试。", flush=True)
+                time.sleep(delay)
     now = cutoff_time()
     watermark = format_utc(now)
     stamp = format_utc(datetime.now(timezone.utc))
@@ -539,7 +564,7 @@ def run_bbc_collection(api_key, output_folder):
 
             try:
                 while True:
-                    page, next_token = search.story_list(
+                    page, next_token = paced_story_list(
                         f'"{term}"',
                         start_date=first_date,
                         end_date=end_date,

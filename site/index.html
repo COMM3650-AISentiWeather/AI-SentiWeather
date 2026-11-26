@@ -14,8 +14,8 @@
     document.querySelectorAll("[data-reveal]").forEach(function (el) { el.classList.add("is-in"); });
   }, 2500);
 </script>
-<link rel="stylesheet" href="./style.css?v=20261127c">
-<script defer src="./app.js?v=20261127c"></script>
+<link rel="stylesheet" href="./style.css?v=20261127d">
+<script defer src="./app.js?v=20261127d"></script>
 </head>
 <body data-page="home">
 
@@ -142,7 +142,7 @@
       </div>
     </div>
     <div class="weather-foot">
-      <div class="weekstrip">
+      <div class="weekstrip" title="Drag left or right, or use the arrows, to browse dates">
         <canvas id="weekStrip" height="76" aria-label="Daily average sentiment across the collected period, grouped into 30-day blocks."></canvas>
         <input type="range" id="stripRange" class="strip-range" min="0" max="0" step="1" value="0" aria-label="Choose a 30-day block">
         <div class="strip-tip" id="stripTip" hidden></div>

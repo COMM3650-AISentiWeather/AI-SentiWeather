@@ -1342,11 +1342,11 @@ prepareMotion();
  * countdown to the next daily refresh
  * ------------------------------------------------------------------ */
 
-/* The scheduled job runs at 10:05 Hong Kong time, five minutes after the
-   10:00 HKT reporting cutoff. Hong Kong is a fixed UTC+8 offset, so the run
-   is 02:05 UTC and the arithmetic below never has to worry about DST. */
-const REFRESH_UTC_HOUR = 2;
-const REFRESH_UTC_MINUTE = 5;
+/* The scheduled job runs at 00:00 UTC, which is 08:00 in Hong Kong. The data
+   cutoff is 07:55 HKT so a slightly early trigger still lands on today's
+   window. Hong Kong is a fixed UTC+8 offset, so no DST handling is needed. */
+const REFRESH_UTC_HOUR = 0;
+const REFRESH_UTC_MINUTE = 0;
 const HK_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 function nextRefreshAt(now = Date.now()) {

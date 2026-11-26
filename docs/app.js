@@ -310,7 +310,7 @@ function renderWeather(animate = true) {
 
   const sameDay = start === end;
   $("weekDates").textContent = sameDay
-    ? dayLabel(end) + " · 10:00 HKT"
+    ? dayLabel(end) + " · 08:00 HKT"
     : dayLabel(start) + " – " + dayLabel(end) + " · " + weather.days + "-day window";
   const used = new Set(rows.map(r => r.platform));
   $("weekCoverage").textContent = rows.length + " scored items · " + (used.size || 0) +

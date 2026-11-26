@@ -13,6 +13,47 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
 class PipelineTests(unittest.TestCase):
+    def test_backfill_preparation_preserves_existing_watermarks(self):
+        import backfill_reset
+        import json
+        with tempfile.TemporaryDirectory() as tmp, patch.object(backfill_reset, "STATE", Path(tmp)):
+            folder = Path(tmp) / project.MEDIA["nyt"]
+            folder.mkdir()
+            path = folder / "nyt_state.json"
+            old = {"OpenAI|openai": "2026-11-26T02:00:00Z"}
+            path.write_text(json.dumps(old))
+            backfill_reset.reset_source("nyt", project.iso(project.START), False)
+            self.assertEqual(json.loads(path.read_text()), old)
+
+    def test_media_backfill_does_not_claim_october_until_complete(self):
+        keywords = {"OpenAI": ["openai", "chatgpt"]}
+        end = project.iso(project.LEGACY_START + timedelta(days=20))
+        state = {"OpenAI|openai": end, "OpenAI|chatgpt": end}
+        with patch.object(project, "MEDIA_KEYWORDS", keywords):
+            self.assertEqual(project.media_window("nyt", state, {})[0], project.LEGACY_START)
+            starts = {"OpenAI|openai": project.iso(project.START)}
+            self.assertEqual(project.media_window("nyt", state, starts)[0], project.LEGACY_START)
+            starts["OpenAI|chatgpt"] = project.iso(project.START)
+            self.assertEqual(project.media_window("nyt", state, starts)[0], project.START)
+
+    def test_bbc_group_preserves_old_coverage_until_group_succeeds(self):
+        words = {"OpenAI": ["openai", "chatgpt"]}
+        groups = {"OpenAI": ['"openai" OR "chatgpt"']}
+        end = project.iso(project.LEGACY_START + timedelta(days=20))
+        state = {"OpenAI|openai": end, "OpenAI|chatgpt": end}
+        group_key = 'OpenAI|"openai" OR "chatgpt"'
+        with patch.object(project, "MEDIA_KEYWORDS", words), patch.object(project, "BBC_QUERIES", groups):
+            self.assertEqual(project.media_window("bbc", state, {})[0], project.LEGACY_START)
+            state[group_key] = end
+            self.assertEqual(project.media_window("bbc", state, {group_key: project.iso(project.START)})[0], project.START)
+
+    def test_forum_old_coverage_remains_available_during_backfill(self):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(project, "STATE", Path(tmp)):
+            row = dict(platform="reddit", status="ok", window_start=project.iso(project.LEGACY_START), window_end=project.iso(project.LEGACY_START + timedelta(days=10)))
+            project.write_rows(Path(tmp) / "Collected Data/forum_collection_runs.csv", [row], list(row))
+            self.assertEqual(project.forum_window("reddit")[0], project.LEGACY_START)
+            self.assertEqual(project.forum_end("reddit"), project.START)
+
     def test_bbc_legacy_duplicate_preserves_both_matches_and_date(self):
         with (
             tempfile.TemporaryDirectory() as temp,
@@ -92,6 +133,28 @@ class PipelineTests(unittest.TestCase):
 
 
 class MediaCheckpointTests(unittest.TestCase):
+    def test_nyt_backfill_failure_keeps_old_coverage_then_retries_october(self):
+        import contextlib
+        import io
+        import json
+        import nyt
+
+        key = {"OpenAI": ["openai"]}
+        old_end = project.LEGACY_START + timedelta(days=20)
+        cutoff = old_end + timedelta(days=1)
+        with tempfile.TemporaryDirectory() as tmp, patch.object(nyt, "MEDIA_KEYWORDS", key), patch.object(nyt, "cutoff_time", return_value=cutoff), contextlib.redirect_stdout(io.StringIO()):
+            folder = Path(tmp)
+            (folder / "nyt_state.json").write_text(json.dumps({"OpenAI|openai": project.iso(old_end)}))
+            with patch.object(nyt, "search_window", side_effect=nyt.SearchError("HTTP 429")) as search:
+                nyt.run_nyt_collection("fixture", folder)
+            self.assertEqual(search.call_args.args[3], project.START.date())
+            self.assertFalse((folder / "nyt_coverage_starts.json").exists())
+            self.assertEqual(json.loads((folder / "nyt_state.json").read_text())["OpenAI|openai"], project.iso(old_end))
+            with patch.object(nyt, "search_window", return_value=[]) as search:
+                nyt.run_nyt_collection("fixture", folder)
+            self.assertEqual(search.call_args.args[3], project.START.date())
+            self.assertEqual(json.loads((folder / "nyt_coverage_starts.json").read_text())["OpenAI|openai"], project.iso(project.START))
+
     def test_nyt_failed_query_keeps_watermark_and_retry_deduplicates(self):
         import contextlib
         import io
@@ -109,6 +172,7 @@ class MediaCheckpointTests(unittest.TestCase):
         with (
             tempfile.TemporaryDirectory() as tmp,
             patch.object(nyt, "KEYWORDS", key),
+            patch.object(nyt, "MEDIA_KEYWORDS", key),
             patch.object(nyt, "cutoff_time", return_value=cutoff),
             contextlib.redirect_stdout(io.StringIO()),
         ):

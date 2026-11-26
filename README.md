@@ -1,119 +1,86 @@
-# AI SentiWeather · COMM3650
+# AI Sentiweather
 
-Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://comm3650-aisentiweather.github.io/AI-SentiWeather/>
+AI Sentiweather is a COMM3650 project by Kelly and Fufu. It explores how selected news outlets and online communities discuss five AI companies over time.
 
-首页是「媒体 / AI」时间线与情绪仪表盘，毛玻璃界面会跟随系统浅色 / 深色外观自动切换，顶部每个图标都可以点进对应公司的官网。仪表盘可以用 `‹ ›`、日期选择器或时间轴上的任意一天回看过去窗口的情绪分数，也能切换 1 天 / 7 天 / 30 天窗口；当前日期会写进网址（例如 `?date=2026-11-20&days=1`），可以直接分享；点击 **Get Start!** 进入选择页，左选平台、右选公司，点 **GO!** 生成比较报告。报告包含数量、平均情绪、情绪分布、情绪走势、高频词和代表发言六个板块，并可导出 PDF / PNG / CSV。
+**[Visit AI Sentiweather](https://comm3650-aisentiweather.github.io/AI-SentiWeather/)**
 
-## 仓库与网址
+## Explore the data
 
-- 组织：<https://github.com/COMM3650-AISentiWeather>（GitHub Free 计划）。`qiqiisverygood` 是 owner；`kelly0631` 已收到成员邀请（待接受），组织成员的默认仓库权限已设为 write。
-- 代码仓库：<https://github.com/COMM3650-AISentiWeather/AI-SentiWeather>（Public）
-- 线上站点：<https://comm3650-aisentiweather.github.io/AI-SentiWeather/>（Pages 从 `main` 分支 /docs 文件夹发布）
-- 协作：两人都在组织里，可以直接推 `main`，也可以开分支发 Pull Request，另一位预览后再合并；组织设置和 Pages 只有 owner 能改。
+The project follows OpenAI, Anthropic, Google DeepMind, DeepSeek and ByteDance Seed across The New York Times, The Guardian, BBC, Hacker News, Reddit and Bluesky. BBC discovery combines Media Cloud and official RSS feeds. Forum data is sampled; it does not represent every post or every user on a platform.
 
-## 目录
+On the homepage, explore the sentiment timeline and recent sentiment. Select **Get Started** to choose a time period and either one platform with up to three companies or one company with up to three platforms. The report shows volume, sentiment, sentiment over time, frequent words and selected examples. Report sections can be hidden, and the available export controls provide PDF, PNG and CSV output.
 
-| 路径 | 用途 |
-|---|---|
-| `site/` | 网站源码：`index.html`（首页）、`start.html`（选择页）、`report.html`（报告）、`style.css`、`app.js`、`icons/` |
-| `docs/` | **自动生成**的线上版本，GitHub Pages 从这里发布。不要手改，改 `site/` 后重新发布 |
-| `scripts/` | 采集、分析、构建脚本。`build.py` 生成数据快照，`publish.py` 构建到 `docs/`，`demo.py` 生成本地演示 |
-| `tests/` | 回归测试 |
-| `private-data/` | 原始数据与采集进度（被 Git 忽略，不上传） |
-| `.github/workflows/` | 每日采集与发布、PR 检查 |
+The project aims to collect data from **1 October 2026**, in Hong Kong time (UTC+8). The date picker uses the verified coverage shared by the selected sources. A source's available dates may be shorter when collection is incomplete; BBC date-only records are included after their day is complete. The data cutoff is **07:55 HKT** and the daily workflow is scheduled for **08:00 HKT**. Publication follows after collection completes and may be delayed.
 
-## 当前状态
+## How to interpret the results
 
-- 六个来源全部接入并在线上：NYT、Guardian、BBC 与 Hacker News、Reddit、Bluesky。
-- 论坛三个源已回填到 **2026-10-01 00:00 HKT**（Hacker News / Bluesky 自 10-01，Reddit 自 10-02，首日无命中）；媒体三个源目前自 2026-11-01 起，没有做 10 月回填。
-- 线上快照约 2600 条（论坛约 2070、媒体约 530），以 `docs/dashboard.json` 为准。
-- 数据每天由 GitHub Actions 自动采集并发布，不需要任何人的电脑开机。最近一次运行：`gh run list --workflow=observatory.yml`。
-- 媒体侧的 BBC 偶尔会因 Media Cloud 限流被标为 `partial`：当次仍会照常发布已有数据，下一次运行自动补齐。
+- Each item can be associated with more than one company. Search matches and keyword rules identify mentions; a mention alone does not necessarily mean an article is mainly about that company. Search terms can have ambiguous meanings and search services may omit or delay results.
+- Sentiment uses VADER's English-language compound score, from −1 to +1. Scores of at least 0.05 are positive, at most −0.05 are negative, and the rest are neutral. Media sentiment uses headlines; forum sentiment uses available titles and text. Items with insufficient English text can count toward volume without receiving a sentiment score.
+- Content is weighted equally. Selected examples are extreme scores within the available sample, not representative quotes from an entire platform. VADER may misread context, sarcasm, mixed languages and financial language, and it does not measure whether a statement is true.
+- Searches, sampling, source availability, rate limits and differing text lengths affect comparisons. The dashboard describes the collected sample, not a complete or representative measure of public opinion.
 
-## 本机预览
+## For maintainers
+
+### How the daily update works
+
+GitHub Actions runs `.github/workflows/observatory.yml` on the default branch at `00:00 UTC` (08:00 Hong Kong time), then collects sources in parallel, saves the private checkpoints, builds the site in `docs/`, and commits the snapshot for GitHub Pages. Neither maintainer's computer needs to be on. GitHub may delay scheduled jobs, and external APIs, credentials, quotas, GitHub Actions availability and repository permissions can still cause a run to fail. GitHub can disable scheduled workflows in an inactive public repository; check the Actions page regularly.
+
+The cutoff is the most recent 07:55 HKT boundary at the start of a run. A manual run before 07:55 uses the previous day's cutoff. The homepage countdown indicates the next scheduled start, not a guaranteed completion time. The source status and verified dates in the published data reflect the last run; investigate any `partial` or failed source in the Actions logs.
+
+A successful query advances its checkpoint; an unsuccessful query retains the previous checkpoint for a later retry. Media queries revisit recent dates to catch delayed indexing. Historical coverage has separate checkpoints. A partial collection is saved and may publish existing verified data; the workflow then reports failure so the issue is visible. Inspect the relevant logs before retrying.
+
+### Configuration
+
+Configure these under the public repository's **Settings → Secrets and variables → Actions**:
+
+| Type | Name | Purpose |
+| --- | --- | --- |
+| Secret | `NYT_API_KEY` | New York Times Article Search |
+| Secret | `GUARDIAN_API_KEY` | Guardian Open Platform |
+| Secret | `MEDIACLOUD_API_KEY` | Media Cloud Search for BBC |
+| Secret | `DATA_REPO_TOKEN` | Access to the private data repository, with Contents read/write |
+| Variable | `DATA_REPO` | Private data repository in `owner/repository` form |
+
+The private data repository must have a `main` branch. Keep each source's articles, query matches, collection logs, state and coverage-start files together. Forum records and run logs are stored in `Collected Data/`; `latest.json` records the last run's cutoff and statuses. Do not put API keys, raw private data or the private repository token in the public repository. Check token expiry and API quotas when troubleshooting.
+
+GitHub Pages serves `docs/` from the public repository's `main` branch. A site build copies `site/`, generates Plotly's JavaScript bundle and writes `dashboard.json`; the dashboard, article titles, short excerpts and links are public.
+
+### Running and troubleshooting
+
+Open **Actions → AI Sentiweather → Run workflow** and choose an operation on `main`:
+
+- `update`: collect and publish. Leave `sources` blank for all sources, or specify comma-separated names: `nyt`, `guardian`, `bbc`, `hacker_news`, `reddit`, `bluesky`.
+- `rebuild`: publish a new site from saved data without collecting.
+- `backfill`: collect the selected sources and save checkpoints without publishing; run `rebuild` afterwards. Forum backfill rereads the project window, while media collectors retry any incomplete historical coverage.
+- `restore`: explicitly set media watermarks using `reset_to`. This changes collection progress; use it only when recovering from a known checkpoint problem and after backing up the private data.
+
+For a failed or partial run, expand **Collect sources**, check the affected source's response and whether its key and quota are valid, then retry after resolving the cause. A `429` indicates rate limiting. Avoid concurrent runs or overlapping manual backfills. **Persist private checkpoints** must succeed before new progress is safely stored; **Build and check public snapshot** and **Publish the rebuilt site to docs/** must succeed for a new snapshot to reach Pages. A completed Pages deployment is a separate check.
+
+### Repository and local development
+
+| Path | Purpose |
+| --- | --- |
+| `site/` | Website source files |
+| `scripts/` | Collection, data processing and site build |
+| `tests/` | Automated regression tests |
+| `docs/` | Generated site and public snapshot served by GitHub Pages |
+| `.github/workflows/` | Daily workflow and pull-request checks |
+| `private-data/` | Local private data checkout; excluded from the public repository |
+
+For a local demo with synthetic data:
 
 ```sh
 python3 -m venv .venv
 source .venv/bin/activate
 python -m pip install -r requirements.txt
 python -m unittest discover -s tests
-
-# 用已保存的私有数据构建（放在 private-data/ 或由 OBS_STATE 指定）
-python scripts/publish.py
-python -m http.server 8000 --directory docs
-```
-
-浏览器打开 <http://localhost:8000>。没有真实数据时可以用合成演示数据：
-
-```sh
+node --check site/app.js
 python scripts/demo.py
 python -m http.server 8000 --directory demo-dist
 ```
 
-演示模式会在页面上标明 Demo，数据全部为合成内容。
+Open `http://localhost:8000`. To build with an existing private data checkout, use `python scripts/publish.py`; set `OBS_STATE` first if the data is outside `private-data/`. Coordinate changes using branches and pull requests, run the checks, and avoid overwriting a newer `docs/dashboard.json` snapshot when merging.
 
-## 修改并发布网站
+## References
 
-1. 改 `site/` 里的文件（首页 `index.html`、选择页 `start.html`、报告 `report.html`、样式 `style.css`、逻辑 `app.js`）。
-2. 在本机预览：`python scripts/publish.py` 后 `python -m http.server 8000 --directory docs`。
-3. 提交 `site/` 与 `docs/` 两处改动，推送到 `main`。GitHub Pages 会在约一分钟内更新线上页面。
-
-数据口径（谁算一家公司、情绪阈值、时间窗口）在 `scripts/build.py`；只要数据没变，改前端后重跑 `publish.py` 即可。
-
-两个人协作时各自新建分支、发 Pull Request，另一位预览后再合并。PR 会自动运行 `check.yml`：单元测试、`node --check site/app.js` 和演示构建。
-
-## GitHub Pages 设置
-
-仓库 **Settings → Pages → Build and deployment**：
-
-- Source 选 **Deploy from a branch**
-- Branch 选 **main**，文件夹选 **/docs**
-
-改完保存，几十秒后 <https://comm3650-aisentiweather.github.io/AI-SentiWeather/> 即可访问。
-
-## 每日自动更新（已配置好，无需人工）
-
-`.github/workflows/observatory.yml` 每天 **00:00 UTC（08:00 HKT）** 自动运行：采集 → 保存进度 → 分析 → 构建 `docs/` → 提交回 `main`，Pages 随后自己发布。整个流程跑在 GitHub 的服务器上，本机不用开机，也不需要任何人（或 AI）盯着。
-
-每次采集的窗口在前一日 07:55 HKT 到今天 07:55 HKT 之间。截止点定在 07:55 而不是 08:00：留出这五分钟，任务哪怕提前几秒启动也仍然落在当天，不会退回昨天的窗口、把站点的截止时间往回拨。首页那张情绪卡片里有一行灰色小字，实时倒数距离下一次更新的时间（香港时间与 UTC 并列）。
-
-10 月补采按来源和查询单独记录起始覆盖时间；失败时保留先前已验证的范围并在之后重试。媒体查询移除了中文关键词和重复的 DeepSeek 版本关键词；其余产品关键词保留。BBC 的 Media Cloud 按公司合并关键词查询，RSS 仍使用单独关键词匹配，合并查询的命中证据记录为公司查询表达式。搜索平台对连字符或版本词的分词可能不同，精简关键词可能影响召回；论坛继续使用原有关键词与抽样方法。
-
-- 想立刻更新一次：`gh workflow run observatory.yml -f operation=update`（约 10–20 分钟）。
-- 只从已保存的数据重建页面、不重新采集：`gh workflow run observatory.yml -f operation=rebuild`。
-- 补历史数据（回填）：`gh workflow run observatory.yml -f operation=backfill -f sources=reddit`。回填保留已有水位，只采集、存档、**不发布**；完成后使用 `operation=rebuild` 发布。普通 `update` 也会自动补足未完成的历史范围。
-- 运行结果：`gh run list --workflow=observatory.yml`。若某个来源 `partial`，页面照常发布，任务最后一步会标红提醒，第二天自动重试。
-- 采集进度存在私有数据仓库里，公开仓库只放图表数据。
-
-以下 Secrets 和 Variable 已经配好，换环境时才需要重配：
-
-| 类型 | 名称 | 值 |
-|---|---|---|
-| Secret | NYT_API_KEY | NYT Article Search 的 Key |
-| Secret | GUARDIAN_API_KEY | Guardian Open Platform 的 Key |
-| Secret | MEDIACLOUD_API_KEY | Media Cloud API Key |
-| Secret | DATA_REPO_TOKEN | 私有数据仓库的 fine-grained token（Contents: Read and write） |
-| Variable | DATA_REPO | 私有数据仓库的 `所有者/仓库名`，例如 `your-account/ai-sentiweather-data` |
-
-私有数据仓库的根目录放两个文件夹：
-
-| 文件夹 | 内容 |
-|---|---|
-| `Material_NYT/`、`Material_Guardian/`、`Material_BBC_English/` | 各来源的 `*_articles.csv`、`*_query_matches.csv`、`*_collection_runs.csv`、`*_state.json` |
-| `Collected Data/` | 论坛的 `forum_raw.csv`、`forum_collection_runs.csv` |
-
-同一来源的四个文件必须来自同一次备份。原始数据、API Key 不要放进公开仓库；网站公开的是图表数据、标题、短摘录、词频和原文链接。
-
-## 数据解释
-
-- 五家公司可多标签，每个比较组内一篇文章／一条发言计一次。媒体保留 API 检索命中或 RSS 关键词证据，查询尚未覆盖的公司标记留空。论坛沿用 Fufu 的带语境匹配。媒体和论坛均映射到同一套公司 ID。
-- 整合 BBC 时按规范化文章路径合并英美域名和追踪参数的重复项，合并公司标签及发现渠道。仅有来源日期时保留日精度；RSS 条目时间作为单独标记的替代值。目标日期从 10 月 1 日开始，实际可用范围以补采和覆盖状态为准，月初边界可能受来源时区影响。
-- 日期选取依据所有选中平台的共同覆盖范围。媒体要求全部关键词已完成到该日期，论坛要求抽样查询窗口从项目起点连续成功。BBC 报告可选到上一个完整自然日。
-- 情绪使用 VADER compound 分数（−1 至 +1）。媒体统一用标题，论坛用标题和可用正文；拉丁字母占比低或文字不足的条目仅计数量。VADER 是英文词典方法，反讽、混合语言及财经标题会影响结果。正面阈值 ≥0.05，负面阈值 ≤−0.05，其余中立。
-- 首页「本周情绪」取最近 168 小时内、至少命中一家公司的可评分记录，按内容等权，每条只算一次。
-- 每组的正面、负面示例分别取最高、最低分；中立取最接近零者。词云汇总每条分析文本中最常见的最多 35 个英文词。周从星期一开始，月按香港日历划分。
-- Hacker News、Bluesky 和 Reddit 都采用抽样，因此「代表发言」是当前选中样本中的极值，不是全平台舆论。
-
-## 参考
-
-[GitHub Pages](https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site) · [Actions 定时任务](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule) · [VADER](https://github.com/cjhutto/vaderSentiment)
+[GitHub Actions scheduled workflows](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule) · [GitHub Pages](https://docs.github.com/en/pages) · [VADER](https://github.com/cjhutto/vaderSentiment)

@@ -375,6 +375,9 @@ function syncStrip() {
   el.setAttribute("aria-valuetext",
     shortDay(page.start) + " to " + shortDay(page.end) + ", page " + (idx + 1) + " of " + pages.length);
   el.title = shortDay(page.start) + " – " + shortDay(page.end);
+  if ($("stripPage")) $("stripPage").textContent = (idx + 1) + " / " + pages.length;
+  if ($("stripPrev")) $("stripPrev").disabled = idx <= 0;
+  if ($("stripNext")) $("stripNext").disabled = idx >= pages.length - 1;
 }
 
 function selectStripPage(index) {
@@ -462,7 +465,7 @@ function drawStrip(start, end) {
   g.setTransform(dpr, 0, 0, dpr, 0, 0);
   g.clearRect(0, 0, width, height);
 
-  const padX = 12, padTop = 14, padBottom = 20;
+  const padX = 14, padTop = 14, padBottom = 20;
   const n = daySeries.length;
   let endIdx = -1;
   for (let i = 0; i < n; i++) if (daySeries[i].date <= end) endIdx = i;
@@ -659,6 +662,11 @@ function initWeatherControls() {
     strip.parentElement.addEventListener("pointerup", stop);
     strip.parentElement.addEventListener("pointercancel", stop);
   }
+
+  const prevPage = $("stripPrev");
+  const nextPage = $("stripNext");
+  if (prevPage) prevPage.onclick = () => selectStripPage(pageIndexOfCurrent() - 1);
+  if (nextPage) nextPage.onclick = () => selectStripPage(pageIndexOfCurrent() + 1);
 }
 
 function initHome() {

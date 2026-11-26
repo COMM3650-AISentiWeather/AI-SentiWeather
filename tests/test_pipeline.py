@@ -16,13 +16,13 @@ class PipelineTests(unittest.TestCase):
     def test_backfill_preparation_preserves_existing_watermarks(self):
         import backfill_reset
         import json
-        with tempfile.TemporaryDirectory() as tmp, patch.object(backfill_reset, "STATE", Path(tmp)):
+        with tempfile.TemporaryDirectory() as tmp, patch.object(backfill_reset, "STATE", Path(tmp)), patch.object(sys, "argv", ["backfill_reset.py"]):
             folder = Path(tmp) / project.MEDIA["nyt"]
             folder.mkdir()
             path = folder / "nyt_state.json"
             old = {"OpenAI|openai": "2026-11-26T02:00:00Z"}
             path.write_text(json.dumps(old))
-            backfill_reset.reset_source("nyt", project.iso(project.START), False)
+            self.assertEqual(backfill_reset.main(), 0)
             self.assertEqual(json.loads(path.read_text()), old)
 
     def test_media_backfill_does_not_claim_october_until_complete(self):

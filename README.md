@@ -24,9 +24,9 @@ Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://comm
 
 ## 当前状态
 
-- 论坛侧（Hacker News / Reddit / Bluesky）已有真实数据：794 条原始记录，2026-11-01 起，截至 2026-11-25 02:00 UTC。
-- 媒体侧（NYT / Guardian / BBC）尚未接入：需要先配置三个 API Key（见下文），届时选择页的灰色气泡会自动点亮。
-- 因此线上报告目前只有三个论坛来源，首页仍会显示全部六个来源的图标。
+- 六个来源全部接入并在线上：NYT、Guardian、BBC 与 Hacker News、Reddit、Bluesky。截至 2026-11-26 02:00 UTC，`docs/dashboard.json` 共 1371 条（媒体 532、论坛 839），2026-11-01 起。
+- 数据每天由 GitHub Actions 自动采集并发布，不需要任何人的电脑开机。最近一次运行：`gh run list --workflow=observatory.yml`。
+- 媒体侧的 BBC 偶尔会因 Media Cloud 限流被标为 `partial`：当次仍会照常发布已有数据，下一次运行自动补齐。
 
 ## 本机预览
 
@@ -69,9 +69,16 @@ python -m http.server 8000 --directory demo-dist
 
 改完保存，几十秒后 <https://comm3650-aisentiweather.github.io/AI-SentiWeather/> 即可访问。
 
-## 每日采集（可选，需先配置 Key）
+## 每日自动更新（已配置好，无需人工）
 
-`.github/workflows/observatory.yml` 在香港时间每天 10:00 运行：采集 → 保存进度 → 分析 → 构建 `docs/` → 提交回 `main`。**在配置好 Secrets 之前，这个定时任务会失败，这是预期行为**；配置完成后即可正常跑。
+`.github/workflows/observatory.yml` 每天 **02:05 UTC（10:05 HKT）** 自动运行：采集 → 保存进度 → 分析 → 构建 `docs/` → 提交回 `main`，Pages 随后自己发布。整个流程跑在 GitHub 的服务器上，本机不用开机，也不需要任何人（或 AI）盯着。比 10:00 晚五分钟是有意的：采集窗口的截止点是 10:00 HKT，留出余量可以保证每次都取到当天的新窗口，而不会退回昨天的快照。
+
+- 想立刻更新一次：`gh workflow run observatory.yml -f operation=update`（约 10–20 分钟）。
+- 只从已保存的数据重建页面、不重新采集：`gh workflow run observatory.yml -f operation=rebuild`。
+- 运行结果：`gh run list --workflow=observatory.yml`。若某个来源 `partial`，页面照常发布，任务最后一步会标红提醒，第二天自动重试。
+- 采集进度存在私有数据仓库里，公开仓库只放图表数据。
+
+以下 Secrets 和 Variable 已经配好，换环境时才需要重配：
 
 | 类型 | 名称 | 值 |
 |---|---|---|

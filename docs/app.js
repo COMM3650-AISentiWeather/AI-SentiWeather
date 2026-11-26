@@ -142,13 +142,24 @@ function drawGauge(value, animate = true) {
   const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const bands = ["#af5364", "#c78c80", "#cdc9ae", "#99bb9c", "#307968"];
 
+  /* the arc is cut where the score actually changes category:
+     red below -0.05, a thin neutral notch, green above +0.05 */
+  const NEUTRAL = 0.05;
+  const mid = NEUTRAL + (1 - NEUTRAL) / 2;
+  const stops = [-1, -mid, -NEUTRAL, NEUTRAL, mid, 1];
+  const angleOf = value => Math.PI * (1 + (value + 1) / 2);
+
   const paint = v => {
     g.clearRect(0, 0, c.width, c.height);
     g.lineWidth = 23;
     bands.forEach((band, i) => {
+      const from = angleOf(stops[i]);
+      const to = angleOf(stops[i + 1]);
+      const gap = to - from > 0.12 ? 0.012 : 0.004;
+      if (to - from <= gap * 2) return;
       g.beginPath();
       g.strokeStyle = band;
-      g.arc(x, y, r, Math.PI * (1 + i / 5) + 0.016, Math.PI * (1 + (i + 1) / 5) - 0.016);
+      g.arc(x, y, r, from + gap, to - gap);
       g.stroke();
     });
     g.fillStyle = label;

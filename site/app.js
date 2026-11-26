@@ -320,6 +320,64 @@ function renderWeather(animate = true) {
   drawStrip(start, end);
 }
 
+/* the strip is a slider over consecutive 30-day blocks */
+const STRIP_BLOCK = 30;
+
+function stripGroups() {
+  const groups = [];
+  for (let i = 0; i < daySeries.length; i += STRIP_BLOCK) {
+    const last = daySeries[Math.min(daySeries.length - 1, i + STRIP_BLOCK - 1)];
+    groups.push({ start: daySeries[i].date, end: last.date, index: groups.length });
+  }
+  return groups;
+}
+
+function groupForEnd(end) {
+  const groups = stripGroups();
+  if (!groups.length) return 0;
+  const found = groups.findIndex(g => g.end >= end);
+  return found < 0 ? groups.length - 1 : found;
+}
+
+function syncStrip() {
+  const el = $("stripRange");
+  if (!el) return;
+  const groups = stripGroups();
+  if (!groups.length) {
+    el.disabled = true;
+    return;
+  }
+  el.disabled = groups.length < 2;
+  el.min = "0";
+  el.max = String(groups.length - 1);
+  const idx = groupForEnd(weather.end);
+  el.value = String(idx);
+  el.setAttribute("aria-valuetext",
+    shortDay(groups[idx].start) + " – " + shortDay(groups[idx].end) + ", 30-day block " + (idx + 1) + " of " + groups.length);
+  el.title = shortDay(groups[idx].start) + " – " + shortDay(groups[idx].end);
+}
+
+function selectStripGroup(index) {
+  const groups = stripGroups();
+  const group = groups[index];
+  if (!group) return;
+  weather.days = STRIP_BLOCK;
+  weather.end = clampEnd(group.end);
+  renderWeather();
+  saveWeatherState();
+  const tip = $("stripTip");
+  const el = $("stripRange");
+  if (tip && el) {
+    tip.hidden = false;
+    tip.textContent = shortDay(group.start) + " – " + shortDay(group.end);
+    const box = el.getBoundingClientRect();
+    const ratio = groups.length > 1 ? index / (groups.length - 1) : 0;
+    tip.style.left = (12 + ratio * Math.max(0, box.width - 24)) + "px";
+    clearTimeout(selectStripGroup.timer);
+    selectStripGroup.timer = setTimeout(() => { tip.hidden = true; }, 1400);
+  }
+}
+
 function syncWeatherControls(start, end) {
   const bounds = coverageBounds();
   const input = $("weekDate");
@@ -336,6 +394,7 @@ function syncWeatherControls(start, end) {
     b.setAttribute("aria-pressed", String(+b.dataset.days === weather.days));
   });
   if ($("weekDates")) $("weekDates").dataset.range = start + "/" + end;
+  syncStrip();
 }
 
 function stepWindow(days) {
@@ -457,6 +516,19 @@ function drawStrip(start, end) {
   /* end labels */
   g.fillStyle = muted;
   g.font = "10px -apple-system, Helvetica, Arial, sans-serif";
+  /* 30-day block separators */
+  g.setLineDash([]);
+  g.strokeStyle = withAlpha(ink, 0.14);
+  g.lineWidth = 1;
+  const step = n > 1 ? x(1) - x(0) : 0;
+  for (let i = STRIP_BLOCK; i < n; i += STRIP_BLOCK) {
+    const gx = x(i) - step / 2;
+    g.beginPath();
+    g.moveTo(gx, 8);
+    g.lineTo(gx, height - 22);
+    g.stroke();
+  }
+
   g.textBaseline = "alphabetic";
   g.textAlign = "left";
   g.fillText(shortDay(daySeries[0].date), padX, height - 4);
@@ -530,29 +602,9 @@ function initWeatherControls() {
     };
   }
 
-  const strip = $("weekStrip");
-  const tip = $("stripTip");
-  if (strip && tip) {
-    strip.addEventListener("mousemove", e => {
-      const i = stripIndexAt(e.clientX);
-      if (i < 0) return;
-      const point = daySeries[i];
-      tip.hidden = false;
-      tip.textContent = shortDay(point.date) + " · " + (point.mean == null ? "no scored items" : (point.mean >= 0 ? "+" : "") + point.mean.toFixed(2)) + " · " + point.n + " items";
-      const geom = stripGeometry;
-      const left = Math.min(Math.max(14, geom.padX + (geom.width - 2 * geom.padX) * (i / geom.span)), geom.width - 14);
-      tip.style.left = left + "px";
-    });
-    strip.addEventListener("mouseleave", () => {
-      tip.hidden = true;
-    });
-    strip.addEventListener("click", e => {
-      const i = stripIndexAt(e.clientX);
-      if (i < 0) return;
-      weather.end = clampEnd(daySeries[i].date);
-      renderWeather();
-      saveWeatherState();
-    });
+  const range = $("stripRange");
+  if (range) {
+    range.addEventListener("input", () => selectStripGroup(+range.value));
   }
 }
 

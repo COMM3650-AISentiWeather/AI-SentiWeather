@@ -138,7 +138,8 @@
     </div>
     <div class="weather-foot">
       <div class="weekstrip">
-        <canvas id="weekStrip" height="76" aria-label="Daily average sentiment across the collected period. Click a day to move the window."></canvas>
+        <canvas id="weekStrip" height="76" aria-label="Daily average sentiment across the collected period, grouped into 30-day blocks."></canvas>
+        <input type="range" id="stripRange" class="strip-range" min="0" max="0" step="1" value="0" aria-label="Choose a 30-day block">
         <div class="strip-tip" id="stripTip" hidden></div>
       </div>
     </div>

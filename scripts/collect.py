@@ -179,9 +179,19 @@ def main():
                     result[name] = "ok" if ok else "partial"
             except Exception as exc:
                 print(f"{name} failed: {type(exc).__name__}", flush=True)
-    (STATE / "latest.json").write_text(
+    # A run that only touches some sources must not erase the others' status.
+    latest_path = STATE / "latest.json"
+    previous = {}
+    if latest_path.is_file():
+        try:
+            previous = json.loads(latest_path.read_text(encoding="utf-8"))
+        except ValueError:
+            previous = {}
+    sources = dict(previous.get("sources") or {})
+    sources.update(result)
+    latest_path.write_text(
         json.dumps(
-            dict(cutoff=iso(cutoff), finished=iso(datetime.now(UTC)), sources=result),
+            dict(cutoff=iso(cutoff), finished=iso(datetime.now(UTC)), sources=sources),
             indent=2,
         )
     )

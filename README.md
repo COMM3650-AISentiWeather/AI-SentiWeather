@@ -24,7 +24,9 @@ Kelly 与 Fufu 的 AI 媒体及论坛观察网站。线上地址：<https://comm
 
 ## 当前状态
 
-- 六个来源全部接入并在线上：NYT、Guardian、BBC 与 Hacker News、Reddit、Bluesky。数据起点是 **2026-10-01 00:00 HKT**；具体条数以 `docs/dashboard.json` 为准。
+- 六个来源全部接入并在线上：NYT、Guardian、BBC 与 Hacker News、Reddit、Bluesky。
+- 论坛三个源已回填到 **2026-10-01 00:00 HKT**（Hacker News / Bluesky 自 10-01，Reddit 自 10-02，首日无命中）；媒体三个源目前自 2026-11-01 起，没有做 10 月回填。
+- 线上快照约 2600 条（论坛约 2070、媒体约 530），以 `docs/dashboard.json` 为准。
 - 数据每天由 GitHub Actions 自动采集并发布，不需要任何人的电脑开机。最近一次运行：`gh run list --workflow=observatory.yml`。
 - 媒体侧的 BBC 偶尔会因 Media Cloud 限流被标为 `partial`：当次仍会照常发布已有数据，下一次运行自动补齐。
 

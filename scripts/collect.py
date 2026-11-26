@@ -14,6 +14,7 @@ from project import (
     MEDIA,
     FORUM,
     KEYWORDS,
+    media_queries,
     START,
     UTC,
     iso,
@@ -62,10 +63,11 @@ def media(name):
     started = iso(datetime.now(UTC))
     getattr(module, f"run_{name}_collection")(key, str(folder))
     # The original collectors can finish normally after a failed query.
-    state = json.loads((folder / f"{name}_state.json").read_text())
+    state_path = folder / f"{name}_state.json"
+    state = json.loads(state_path.read_text()) if state_path.exists() else {}
     ok = all(
         instant(state.get(c + "|" + term, iso(START))) >= cutoff_time()
-        for c, terms in KEYWORDS.items()
+        for c, terms in media_queries(name).items()
         for term in terms
     )
     fresh = [
@@ -75,7 +77,7 @@ def media(name):
     ]
     attempted = {(r["company"], r["query_term"]): r["status"] for r in fresh}
     ok = ok and all(
-        attempted.get((c, t)) == "ok" for c, terms in KEYWORDS.items() for t in terms
+        attempted.get((c, t)) == "ok" for c, terms in media_queries(name).items() for t in terms
     )
     if name == "bbc":
         rss = [

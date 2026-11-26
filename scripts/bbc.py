@@ -18,7 +18,7 @@ import requests
 # 1. 关键词与来源
 # ============================================================
 
-from project import KEYWORDS, cutoff_time
+from project import KEYWORDS, MEDIA_KEYWORDS, BBC_QUERIES, START, LEGACY_START, cutoff_time, coverage_starts, save_coverage_starts
 
 # 已在测试中成功读取的 BBC 英文 RSS。
 FEEDS = {
@@ -31,19 +31,8 @@ FEEDS = {
 # 测试中找到的 Media Cloud BBC 英文来源。
 SOURCE_IDS = [932549]
 
-# 香港时间 2026-10-01 00:00 对应的 UTC 时间。
-START = datetime(
-    2026,
-    9,
-    30,
-    16,
-    0,
-    0,
-    tzinfo=timezone.utc,
-)
-
 # Media Cloud 只提供日期，向前多查一天。
-START_DATE = date(2026, 9, 30)
+START_DATE = START.date()
 
 
 # ============================================================
@@ -257,6 +246,7 @@ def run_bbc_collection(api_key, output_folder):
     log_path = folder / "bbc_collection_runs.csv"
     rss_log_path = folder / "bbc_rss_runs.csv"
     state_path = folder / "bbc_state.json"
+    starts = coverage_starts(folder, "bbc")
 
     articles = {row["id"]: row for row in read_csv(article_path)}
 
@@ -340,7 +330,7 @@ def run_bbc_collection(api_key, output_folder):
         matched_pairs = {(row["id"], row["company"]) for row in matches.values()}
 
         for article in articles.values():
-            for company, terms in KEYWORDS.items():
+            for company, terms in BBC_QUERIES.items():
                 found = (
                     article["id"],
                     company,
@@ -350,6 +340,7 @@ def run_bbc_collection(api_key, output_folder):
 
                 covered = published and all(
                     company + "|" + term in state
+                    and parse_time(starts.get(company + "|" + term, format_utc(LEGACY_START))).date() <= date.fromisoformat(published)
                     and parse_time(state[company + "|" + term]).date()
                     > date.fromisoformat(published)
                     for term in terms
@@ -429,7 +420,7 @@ def run_bbc_collection(api_key, output_folder):
 
                 found_terms = [
                     (company, term)
-                    for company, terms in KEYWORDS.items()
+                    for company, terms in MEDIA_KEYWORDS.items()
                     for term in terms
                     if re.search(
                         r"(?<!\w)" + re.escape(term) + r"(?!\w)",
@@ -531,7 +522,7 @@ def run_bbc_collection(api_key, output_folder):
     # 4B. 更新 Media Cloud 数据
     # --------------------------------------------------------
 
-    for company, terms in KEYWORDS.items():
+    for company, terms in BBC_QUERIES.items():
         for term in terms:
             state_key = company + "|" + term
 
@@ -545,6 +536,8 @@ def run_bbc_collection(api_key, output_folder):
                 START_DATE,
                 (previous - timedelta(days=2)).date(),
             )
+            if parse_time(starts.get(state_key, format_utc(LEGACY_START))) > START:
+                first_date = START_DATE
 
             record = {
                 "run_at": stamp,
@@ -565,7 +558,7 @@ def run_bbc_collection(api_key, output_folder):
             try:
                 while True:
                     page, next_token = paced_story_list(
-                        f'"{term}"',
+                        term,
                         start_date=first_date,
                         end_date=end_date,
                         source_ids=SOURCE_IDS,
@@ -680,6 +673,8 @@ def run_bbc_collection(api_key, output_folder):
                     encoding="utf-8",
                 )
                 os.replace(temp_path, state_path)
+                starts[state_key] = format_utc(START)
+                save_coverage_starts(folder, "bbc", starts)
 
     save_results()
 

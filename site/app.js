@@ -1328,7 +1328,7 @@ function startUpdateCountdown() {
 
 async function init() {
   startUpdateCountdown();
-  const res = await fetch("./dashboard.json", { cache: "no-cache" });
+  const res = await fetch("./dashboard.json", { cache: "no-store" });
   if (!res.ok) throw new Error("Snapshot unavailable");
   data = await res.json();
   if (PAGE === "home") initHome();

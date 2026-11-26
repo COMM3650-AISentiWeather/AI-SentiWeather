@@ -1,17 +1,7 @@
-"""Reset source watermarks so a backfill re-reads the project from its first day.
+"""Inspect backfill preparation, or explicitly restore saved watermarks.
 
-Collectors resume from a per-(company, term) watermark in ``*_state.json``.
-When the project window is extended backwards (2026-11-01 -> 2026-10-01) an
-existing watermark would keep the old queries from reaching the new month, so
-this script drops every watermark back to ``START`` once.
-
-It records what it applied in ``backfill.json``. A second run with the same
-start therefore does nothing, which keeps a backfill that times out and is
-re-dispatched resumable instead of restarting from scratch every time.
-
-Run it from the repository root with ``OBS_STATE`` pointing at the checkpoints:
-
-    python scripts/backfill_reset.py [--dry-run]
+Collectors track historical coverage starts separately, so ordinary backfill
+must not reset forward watermarks. A restore remains available with --to.
 """
 
 from __future__ import annotations
@@ -69,11 +59,17 @@ def main() -> int:
     parser.add_argument(
         "--to",
         default="",
-        help="ISO instant to pin every watermark to (default: the project start)",
+        help="ISO instant to pin every watermark to; omit for a non-mutating check",
     )
     args = parser.parse_args()
 
-    start = iso(instant(args.to)) if args.to.strip() else iso(START)
+    if not args.to.strip():
+        if args.force:
+            parser.error("--force requires an explicit --to timestamp")
+        print("Backfill uses separate coverage checkpoints; existing watermarks are preserved.")
+        forum_windows(iso(START))
+        return 0
+    start = iso(instant(args.to))
     applied = ""
     if MARKER.is_file():
         try:

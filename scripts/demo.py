@@ -5,7 +5,7 @@ import tempfile
 import json
 from pathlib import Path
 from datetime import timedelta
-from project import iso, START, MEDIA, FORUM, KEYWORDS, HK, write_rows, ROOT
+from project import iso, START, MEDIA, FORUM, KEYWORDS, HK, write_rows, ROOT, media_queries
 
 
 def main():
@@ -50,8 +50,11 @@ def main():
             write_rows(out / f"{platform}_articles.csv", items, list(items[0]))
             (out / f"{platform}_state.json").write_text(
                 json.dumps(
-                    {c + "|" + w: iso(cutoff) for c, ts in KEYWORDS.items() for w in ts}
+                    {c + "|" + w: iso(cutoff) for c, ts in media_queries(platform).items() for w in ts}
                 )
+            )
+            (out / f"{platform}_coverage_starts.json").write_text(
+                json.dumps({c + "|" + w: iso(START) for c, ts in media_queries(platform).items() for w in ts})
             )
         items = []
         for p in FORUM:

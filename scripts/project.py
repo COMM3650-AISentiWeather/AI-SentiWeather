@@ -12,9 +12,23 @@ STATE = Path(os.environ.get("OBS_STATE", ROOT / "private-data")).resolve()
 HK = ZoneInfo("Asia/Hong_Kong")
 UTC = timezone.utc
 START = datetime(2026, 10, 1, tzinfo=HK).astimezone(UTC)
-# First calendar day in Hong Kong time; also the floor written into page ranges.
-START_DAY = START.astimezone(HK).date().isoformat()
+LEGACY_START = datetime(2026, 11, 1, tzinfo=HK).astimezone(UTC)
 KEYWORDS = json.loads((ROOT / "scripts/keywords.json").read_text())
+# Keep the forum vocabulary intact. Media searches omit Chinese terms and
+# redundant DeepSeek version queries; other product names remain distinct.
+MEDIA_KEYWORDS = {
+    company: [term for term in terms if term.isascii() and not (
+        company == "DeepSeek" and term in
+        {"deepseek-r1", "deepseek-v3", "deepseek-v4", "deepseek harness"}
+    )]
+    for company, terms in KEYWORDS.items()
+}
+# Media Cloud supports OR searches. One query per company substantially reduces
+# its two-requests-per-minute bottleneck while retaining company attribution.
+BBC_QUERIES = {
+    company: [' OR '.join('"' + term + '"' for term in terms)]
+    for company, terms in MEDIA_KEYWORDS.items()
+}
 MEDIA = {
     "nyt": "Material_NYT",
     "guardian": "Material_Guardian",
@@ -35,6 +49,44 @@ def instant(value):
 
 def iso(value):
     return value.astimezone(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def media_queries(platform):
+    return BBC_QUERIES if platform == "bbc" else MEDIA_KEYWORDS
+
+
+def coverage_starts(folder, platform):
+    path = folder / f"{platform}_coverage_starts.json"
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else {}
+
+
+def save_coverage_starts(folder, platform, starts):
+    path = folder / f"{platform}_coverage_starts.json"
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(json.dumps(starts, ensure_ascii=False, indent=2), encoding="utf-8")
+    tmp.replace(path)
+
+
+def media_window(platform, state, starts):
+    """Return the common verified interval, preserving pre-migration coverage."""
+    windows = []
+    for company, terms in media_queries(platform).items():
+        for term in terms:
+            key = company + "|" + term
+            if key in state:
+                windows.append((instant(starts.get(key, iso(LEGACY_START))), instant(state[key])))
+            elif platform == "bbc":
+                # The old BBC checkpoints used individual terms. A grouped
+                # query does not erase the already verified historical range.
+                legacy = [state.get(company + "|" + t) for t in MEDIA_KEYWORDS[company]]
+                if not all(legacy):
+                    return None
+                windows.append((LEGACY_START, min(map(instant, legacy))))
+            else:
+                return None
+    start = max(x[0] for x in windows)
+    end = min(x[1] for x in windows)
+    return (start, end) if start < end else None
 
 
 def cutoff_time():
@@ -72,23 +124,35 @@ def write_rows(path, rows, fields):
 
 
 def forum_end(platform):
-    """End of the contiguous stretch of successful forum windows.
-
-    Coverage is anchored on the earliest successful window rather than on
-    ``START``: when the project window is extended backwards the first month can
-    still be missing, and anchoring on ``START`` would collapse the whole range
-    to "no data" until the backfill finishes.
-    """
-    runs = [
-        r
-        for r in read_rows(STATE / "Collected Data/forum_collection_runs.csv")
-        if r["platform"] == platform and r["status"] == "ok"
-    ]
-    if not runs:
-        return START
-    runs.sort(key=lambda r: r["window_start"])
-    end = instant(runs[0]["window_start"])
+    end = START
+    runs = sorted(
+        read_rows(STATE / "Collected Data/forum_collection_runs.csv"),
+        key=lambda r: r["window_start"],
+    )
     for r in runs:
-        if instant(r["window_start"]) <= end:
+        if (
+            r["platform"] == platform
+            and r["status"] == "ok"
+            and instant(r["window_start"]) <= end
+        ):
             end = max(end, instant(r["window_end"]))
     return end
+
+
+def forum_window(platform):
+    """Return the latest contiguous verified forum interval, even during backfill."""
+    intervals = sorted(
+        (instant(r["window_start"]), instant(r["window_end"]))
+        for r in read_rows(STATE / "Collected Data/forum_collection_runs.csv")
+        if r["platform"] == platform and r["status"] == "ok"
+    )
+    merged = []
+    for start, end in intervals:
+        if end <= START or end <= start:
+            continue
+        start = max(start, START)
+        if merged and start <= merged[-1][1]:
+            merged[-1] = (merged[-1][0], max(end, merged[-1][1]))
+        else:
+            merged.append((start, end))
+    return merged[-1] if merged else None

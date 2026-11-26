@@ -1,7 +1,7 @@
 "use strict";
 
 /* ------------------------------------------------------------------ *
- * AI SentiWeather — shared data layer + per-page controllers
+ * AI Sentiweather — shared data layer + per-page controllers
  * Pages: index.html (home), start.html (selection), report.html
  * ------------------------------------------------------------------ */
 

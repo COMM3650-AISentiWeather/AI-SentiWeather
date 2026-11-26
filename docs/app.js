@@ -778,42 +778,105 @@ function makeChart(parent, traces, overrides = {}) {
   return Plotly.newPlot(div, traces, layout, { responsive: true, displayModeBar: false, displaylogo: false });
 }
 
+const wordRedraws = [];
+let wordResizeBound = false;
+
+function bindWordResize() {
+  if (wordResizeBound) return;
+  wordResizeBound = true;
+  let timer = 0;
+  window.addEventListener("resize", () => {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      for (let i = wordRedraws.length - 1; i >= 0; i--) {
+        if (!wordRedraws[i].canvas.isConnected) wordRedraws.splice(i, 1);
+        else wordRedraws[i].draw();
+      }
+    }, 160);
+  });
+}
+
 function wordCloud(parent, items) {
   const counts = new Map();
   for (const r of items) for (const [w, n] of r.terms) counts.set(w, (counts.get(w) || 0) + n);
-  const words = [...counts.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 48);
+  const words = [...counts.entries()]
+    .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
+    .slice(0, 72);
   if (!words.length) {
     parent.append(el("p", "No words available."));
     return;
   }
+
   const c = el("canvas", null, "words");
-  c.width = 920;
-  c.height = 340;
-  const g = c.getContext("2d");
-  const placed = [];
-  g.textAlign = "center";
-  g.textBaseline = "middle";
-  for (const [i, [w, n]] of words.entries()) {
-    const size = 16 + 42 * Math.sqrt(n / words[0][1]);
-    g.font = "500 " + size + "px Georgia";
-    const width = g.measureText(w).width + 9;
-    const h = size + 6;
-    for (let j = 0; j < 1300; j++) {
-      const a = j * 0.45;
-      const r = Math.sqrt(j) * 5.8;
-      const x = 460 + r * 2.25 * Math.cos(a);
-      const y = 170 + r * 0.77 * Math.sin(a);
-      const box = [x - width / 2, y - h / 2, x + width / 2, y + h / 2];
-      if (box[0] < 3 || box[1] < 2 || box[2] > 917 || box[3] > 338 || placed.some(p => box[0] < p[2] && box[2] > p[0] && box[1] < p[3] && box[3] > p[1])) continue;
-      placed.push(box);
-      g.fillStyle = palette()[i % 3];
-      g.fillText(w, x, y);
-      break;
-    }
-  }
   c.setAttribute("role", "img");
   c.setAttribute("aria-label", "Frequent words: " + words.slice(0, 12).map(x => x.join(" ")).join(", "));
   parent.append(c);
+
+  const maxN = words[0][1];
+  const minN = words[words.length - 1][1];
+  const span = Math.max(1, maxN - minN);
+
+  const draw = () => {
+    const panel = c.parentElement;
+    let width = 900;
+    if (panel) {
+      const box = getComputedStyle(panel);
+      width = Math.round(panel.clientWidth - parseFloat(box.paddingLeft || 0) - parseFloat(box.paddingRight || 0));
+    }
+    if (!width || width < 80) return;
+    const height = Math.round(Math.min(Math.max(width * 0.26, 200), 310));
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    c.width = Math.round(width * dpr);
+    c.height = Math.round(height * dpr);
+    c.style.width = width + "px";
+    c.style.height = height + "px";
+    const g = c.getContext("2d");
+    g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    g.clearRect(0, 0, width, height);
+    g.textAlign = "center";
+    g.textBaseline = "middle";
+
+    /* keep the biggest words dominant but leave the smallest readable */
+    const room = Math.min(1, Math.max(0.66, width / 980));
+    const scale = n => {
+      const rank = (n - minN) / span;
+      return Math.round((14 + 60 * Math.pow(rank, 1.5)) * room);
+    };
+
+    const placed = [];
+    const cx = width / 2;
+    const cy = height / 2;
+    /* the spiral is stretched to the shape of the panel, not to a circle */
+    const reachX = Math.max(70, width * 0.46 - 18);
+    const reachY = Math.max(60, height * 0.44 - 14);
+    const stepX = reachX / 34;
+    const stepY = reachY / 34;
+
+    words.forEach(([w, n], i) => {
+      const size = scale(n);
+      g.font = (size >= 30 ? "600 " : "500") + " " + size + "px Georgia, 'Times New Roman', serif";
+      const tw = g.measureText(w).width + Math.max(6, size * 0.22);
+      const th = size * 1.06;
+      for (let j = 0; j < 4200; j++) {
+        const a = j * 0.38;
+        const r = Math.sqrt(j);
+        const x = cx + r * stepX * Math.cos(a);
+        const y = cy + r * stepY * Math.sin(a);
+        if (Math.abs(x - cx) > reachX * 1.55) break;
+        const box = [x - tw / 2, y - th / 2, x + tw / 2, y + th / 2];
+        if (box[0] < 3 || box[1] < 3 || box[2] > width - 3 || box[3] > height - 3) continue;
+        if (placed.some(p => box[0] < p[2] && box[2] > p[0] && box[1] < p[3] && box[3] > p[1])) continue;
+        placed.push(box);
+        g.fillStyle = palette()[i % 3];
+        g.fillText(w, x, y);
+        break;
+      }
+    });
+  };
+
+  draw();
+  bindWordResize();
+  wordRedraws.push({ canvas: c, draw });
   parent.append(el("small", words.slice(0, 8).map(([w, n]) => w + " (" + n + ")").join(" · ")));
 }
 

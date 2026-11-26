@@ -1131,7 +1131,7 @@ main.page {
 }
 .piegrid h3 { margin: 0 0 2px }
 
-.words { width: 100%; height: auto; max-height: 320px }
+.words { display: block; max-width: 100%; height: auto }
 
 .sample {
   border-left: 3px solid var(--line);

@@ -31,11 +31,11 @@ FEEDS = {
 # 测试中找到的 Media Cloud BBC 英文来源。
 SOURCE_IDS = [932549]
 
-# 香港时间 2026-11-01 00:00 对应的 UTC 时间。
+# 香港时间 2026-10-01 00:00 对应的 UTC 时间。
 START = datetime(
     2026,
-    10,
-    31,
+    9,
+    30,
     16,
     0,
     0,
@@ -43,7 +43,7 @@ START = datetime(
 )
 
 # Media Cloud 只提供日期，向前多查一天。
-START_DATE = date(2026, 10, 31)
+START_DATE = date(2026, 9, 30)
 
 
 # ============================================================
@@ -609,8 +609,8 @@ def run_bbc_collection(api_key, output_folder):
                         article["date_precision"] = "date_only"
 
                         if published in {
-                            date(2026, 10, 31),
-                            date(2026, 11, 1),
+                            date(2026, 9, 30),
+                            date(2026, 10, 1),
                         }:
                             article["date_boundary_note"] = "start_boundary_uncertain"
                         else:

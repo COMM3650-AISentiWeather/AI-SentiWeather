@@ -9,11 +9,16 @@ on:
     inputs:
       operation:
         type: choice
-        description: Collect and publish, or rebuild the site from saved data
+        description: Collect and publish, rebuild from saved data, or backfill
         options:
           - update
           - rebuild
+          - backfill
         default: update
+      sources:
+        type: string
+        description: Comma-separated subset (nyt,guardian,bbc,hacker_news,reddit,bluesky). Empty runs all.
+        default: ''
 concurrency:
   group: atlas-production
   cancel-in-progress: false
@@ -48,15 +53,21 @@ jobs:
           cache: pip
       - run: python -m pip install -r requirements.txt
       - run: python -m unittest discover -s tests
+      - name: Reset watermarks for a backfill
+        if: github.event_name == 'workflow_dispatch' && inputs.operation == 'backfill'
+        env:
+        run: python scripts/backfill_reset.py
       - name: Collect sources
         id: collect
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.operation == 'update')
+        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.operation == 'update' || inputs.operation == 'backfill'))
         timeout-minutes: 245
         continue-on-error: true
         env:
           NYT_API_KEY: ${{ secrets.NYT_API_KEY }}
           GUARDIAN_API_KEY: ${{ secrets.GUARDIAN_API_KEY }}
           MEDIACLOUD_API_KEY: ${{ secrets.MEDIACLOUD_API_KEY }}
+          OBS_SOURCES: ${{ inputs.sources }}
+          OBS_BACKFILL: ${{ inputs.operation == 'backfill' && '1' || '' }}
         run: python scripts/collect.py
       - name: Persist private checkpoints
         if: steps.collect.outcome == 'success' || steps.collect.outcome == 'failure'
@@ -70,12 +81,14 @@ jobs:
             git push origin HEAD:main
           fi
       - name: Build and check public snapshot
+        if: inputs.operation != 'backfill'
         env:
           OBS_OUTPUT: docs
         run: |
           python scripts/build.py
           python -c "import json; d=json.load(open('docs/dashboard.json')); assert d['ranges'], 'No verified source windows yet; run update or import checkpoints'"
       - name: Publish the rebuilt site to docs/
+        if: inputs.operation != 'backfill'
         run: |
           git config user.name "AI SentiWeather"
           git config user.email "actions@users.noreply.github.com"

@@ -11,7 +11,9 @@ ROOT = Path(__file__).resolve().parents[1]
 STATE = Path(os.environ.get("OBS_STATE", ROOT / "private-data")).resolve()
 HK = ZoneInfo("Asia/Hong_Kong")
 UTC = timezone.utc
-START = datetime(2026, 11, 1, tzinfo=HK).astimezone(UTC)
+START = datetime(2026, 10, 1, tzinfo=HK).astimezone(UTC)
+# First calendar day in Hong Kong time; also the floor written into page ranges.
+START_DAY = START.astimezone(HK).date().isoformat()
 KEYWORDS = json.loads((ROOT / "scripts/keywords.json").read_text())
 MEDIA = {
     "nyt": "Material_NYT",
@@ -70,16 +72,23 @@ def write_rows(path, rows, fields):
 
 
 def forum_end(platform):
-    end = START
-    runs = sorted(
-        read_rows(STATE / "Collected Data/forum_collection_runs.csv"),
-        key=lambda r: r["window_start"],
-    )
+    """End of the contiguous stretch of successful forum windows.
+
+    Coverage is anchored on the earliest successful window rather than on
+    ``START``: when the project window is extended backwards the first month can
+    still be missing, and anchoring on ``START`` would collapse the whole range
+    to "no data" until the backfill finishes.
+    """
+    runs = [
+        r
+        for r in read_rows(STATE / "Collected Data/forum_collection_runs.csv")
+        if r["platform"] == platform and r["status"] == "ok"
+    ]
+    if not runs:
+        return START
+    runs.sort(key=lambda r: r["window_start"])
+    end = instant(runs[0]["window_start"])
     for r in runs:
-        if (
-            r["platform"] == platform
-            and r["status"] == "ok"
-            and instant(r["window_start"]) <= end
-        ):
+        if instant(r["window_start"]) <= end:
             end = max(end, instant(r["window_end"]))
     return end

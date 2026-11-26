@@ -32,6 +32,20 @@ KEYS = {
 SCRIPT = Path(__file__).resolve()
 
 
+def _selection():
+    raw = os.environ.get("OBS_SOURCES", "")
+    return tuple(name.strip() for name in raw.split(",") if name.strip())
+
+
+WANTED = _selection()
+# A backfill re-reads the whole project window instead of the trailing week.
+BACKFILL = os.environ.get("OBS_BACKFILL", "").strip() not in {"", "0"}
+
+
+def selected(name):
+    return not WANTED or name in WANTED
+
+
 def media(name):
     folder = STATE / MEDIA[name]
     module = importlib.import_module(name)
@@ -84,7 +98,15 @@ def forums(status):
     history = read_rows(runs)
     fields = "id source_type platform content_type published_at collected_at url title body text_scope companies".split()
     for p in FORUM:
-        start = max(START, min(forum_end(p), cutoff_time() - timedelta(days=7)))
+        if not selected(p):
+            continue
+        # A backfill re-walks the project from its first day so that newly
+        # added months are filled in; an ordinary run only refreshes the tail.
+        start = (
+            START
+            if BACKFILL
+            else max(START, min(forum_end(p), cutoff_time() - timedelta(days=7)))
+        )
         env = dict(
             os.environ,
             FORUM_WINDOW_START=iso(start),
@@ -135,7 +157,7 @@ def forums(status):
             runs, history, "platform window_start window_end run_at status".split()
         )
         status[p] = state
-    return all(status[p] == "ok" for p in FORUM)
+    return all(state == "ok" for state in status.values())
 
 
 def main():
@@ -144,10 +166,11 @@ def main():
         raise ValueError("Reporting cutoff precedes the project")
     os.environ["OBS_CUTOFF"] = iso(cutoff)
     STATE.mkdir(parents=True, exist_ok=True)
-    result = {p: "failed" for p in (*MEDIA, *FORUM)}
+    result = {p: "failed" for p in (*MEDIA, *FORUM) if selected(p)}
     with concurrent.futures.ThreadPoolExecutor(max_workers=4) as pool:
-        jobs = {pool.submit(media, name): name for name in MEDIA}
-        jobs[pool.submit(forums, result)] = "forums"
+        jobs = {pool.submit(media, name): name for name in MEDIA if selected(name)}
+        if any(selected(p) for p in FORUM):
+            jobs[pool.submit(forums, result)] = "forums"
         for job in concurrent.futures.as_completed(jobs):
             name = jobs[job]
             try:

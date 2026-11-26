@@ -15,6 +15,7 @@ from project import (
     ROOT,
     STATE,
     START,
+    START_DAY,
     HK,
     MEDIA,
     FORUM,
@@ -106,7 +107,7 @@ def record(r, analyzer, cutoff):
         )
     else:
         return
-    if date < "2026-11-01":
+    if date < START_DAY:
         return
     title, body = r["title"], r["body"]
     if p in MEDIA:
@@ -174,6 +175,7 @@ def build():
     cutoff = instant(latest["cutoff"]) if latest else cutoff_time()
     analyzer = SentimentIntensityAnalyzer()
     rows, ranges = [], {}
+    first_seen, last_seen = {}, {}
     for p in (*MEDIA, *FORUM):
         if p in MEDIA:
             source = load_media(p)
@@ -198,13 +200,25 @@ def build():
             item = record(r, analyzer, cutoff)
             if item:
                 rows.append(item)
+                seen = first_seen.get(p)
+                if seen is None or item["date"] < seen:
+                    first_seen[p] = item["date"]
+                if item["date"] > last_seen.get(p, ""):
+                    last_seen[p] = item["date"]
         if end > START:
             day = min(end, cutoff).astimezone(HK)
             # BBC date-only records on the cutoff day are deferred until tomorrow.
             if p == "bbc" or day.hour == day.minute == day.second == 0:
                 day -= timedelta(days=1)
-            if day.date() >= START.astimezone(HK).date():
-                ranges[p] = ["2026-11-01", day.date().isoformat()]
+            # The picker may not offer days the source has no records for.
+            low = max(START_DAY, first_seen.get(p) or START_DAY)
+            if day.date() >= START.astimezone(HK).date() and low <= day.date().isoformat():
+                ranges[p] = [low, day.date().isoformat()]
+        elif first_seen.get(p):
+            # The watermarks cannot vouch for the window yet (typically while a
+            # backwards backfill is still running). Report the dates the
+            # snapshot actually contains instead of dropping the source.
+            ranges[p] = [max(START_DAY, first_seen[p]), last_seen[p]]
     dist = Path(os.environ.get("OBS_OUTPUT", ROOT / "dist"))
     dist.mkdir(exist_ok=True)
     shutil.copytree(ROOT / "site", dist, dirs_exist_ok=True)

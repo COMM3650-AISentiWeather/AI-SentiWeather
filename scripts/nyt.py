@@ -13,11 +13,11 @@ import requests
 
 from project import KEYWORDS, cutoff_time
 
-# 香港时间 2026-11-01 00:00 对应的 UTC 时间
+# 香港时间 2026-10-01 00:00 对应的 UTC 时间
 START = datetime(
     2026,
-    10,
-    31,
+    9,
+    30,
     16,
     0,
     0,

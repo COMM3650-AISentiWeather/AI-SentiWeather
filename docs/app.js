@@ -320,6 +320,66 @@ function renderWeather(animate = true) {
   drawStrip(start, end);
 }
 
+/* the strip shows one 30-day page at a time; the slider pages through them */
+const STRIP_BLOCK = 30;
+
+function stripPages() {
+  const pages = [];
+  for (let i = 0; i < daySeries.length; i += STRIP_BLOCK) {
+    const last = daySeries[Math.min(daySeries.length - 1, i + STRIP_BLOCK - 1)];
+    pages.push({ from: i, to: Math.min(daySeries.length - 1, i + STRIP_BLOCK - 1), start: daySeries[i].date, end: last.date });
+  }
+  return pages;
+}
+
+function pageIndexForEnd(end) {
+  const pages = stripPages();
+  if (!pages.length) return 0;
+  const found = pages.findIndex(page => page.end >= end);
+  return found < 0 ? pages.length - 1 : found;
+}
+
+function syncStrip() {
+  const el = $("stripRange");
+  if (!el) return;
+  const pages = stripPages();
+  if (!pages.length) {
+    el.disabled = true;
+    return;
+  }
+  el.disabled = pages.length < 2;
+  el.min = "0";
+  el.max = String(pages.length - 1);
+  const idx = pageIndexForEnd(weather.end);
+  el.value = String(idx);
+  const page = pages[idx];
+  el.setAttribute("aria-valuetext",
+    shortDay(page.start) + " to " + shortDay(page.end) + ", page " + (idx + 1) + " of " + pages.length);
+  el.title = shortDay(page.start) + " – " + shortDay(page.end);
+}
+
+function selectStripPage(index) {
+  const pages = stripPages();
+  const page = pages[index];
+  if (!page) return;
+  const full = page.to - page.from + 1;
+  weather.days = full >= STRIP_BLOCK ? STRIP_BLOCK : full;
+  weather.end = clampEnd(page.end);
+  renderWeather();
+  saveWeatherState();
+  const tip = $("stripTip");
+  const el = $("stripRange");
+  if (tip && el) {
+    tip.hidden = false;
+    tip.textContent = shortDay(page.start) + " – " + shortDay(page.end);
+    const box = el.getBoundingClientRect();
+    const ratio = pages.length > 1 ? index / (pages.length - 1) : 0;
+    tip.style.left = (12 + ratio * Math.max(0, box.width - 24)) + "px";
+    clearTimeout(selectStripPage.timer);
+    selectStripPage.timer = setTimeout(() => { tip.hidden = true; }, 1500);
+  }
+}
+
 function syncWeatherControls(start, end) {
   const bounds = coverageBounds();
   const input = $("weekDate");
@@ -336,6 +396,7 @@ function syncWeatherControls(start, end) {
     b.setAttribute("aria-pressed", String(+b.dataset.days === weather.days));
   });
   if ($("weekDates")) $("weekDates").dataset.range = start + "/" + end;
+  syncStrip();
 }
 
 function stepWindow(days) {
@@ -384,10 +445,19 @@ function drawStrip(start, end) {
 
   const padX = 12, padTop = 14, padBottom = 20;
   const n = daySeries.length;
-  const span = Math.max(1, n - 1);
-  const x = i => padX + (width - 2 * padX) * (i / span);
-  /* daily means rarely leave ±0.5, so scale to what is actually there */
-  const extremes = daySeries.filter(d => d.mean != null).map(d => Math.abs(d.mean));
+  let endIdx = -1;
+  for (let i = 0; i < n; i++) if (daySeries[i].date <= end) endIdx = i;
+  if (endIdx < 0) endIdx = n - 1;
+
+  /* only one 30-day page is on screen; the slider chooses which page */
+  const page = Math.min(Math.max(0, Math.floor(endIdx / STRIP_BLOCK)), Math.max(0, Math.ceil(n / STRIP_BLOCK) - 1));
+  const from = page * STRIP_BLOCK;
+  const to = Math.min(n - 1, from + STRIP_BLOCK - 1);
+  const slots = Math.max(1, to - from);
+  const x = offset => padX + (width - 2 * padX) * (offset / slots);
+
+  const pageDays = daySeries.slice(from, to + 1);
+  const extremes = pageDays.filter(d => d.mean != null).map(d => Math.abs(d.mean));
   const scale = Math.min(1, Math.max(0.35, (Math.max(0, ...extremes) || 0.2) * 1.25));
   const y = v => padTop + (height - padTop - padBottom) * (1 - (v + scale) / (2 * scale));
   const pos = cssVar("--pos", "#1c7a6c");
@@ -399,16 +469,17 @@ function drawStrip(start, end) {
 
   let startIdx = daySeries.findIndex(d => d.date >= start);
   if (startIdx < 0) startIdx = 0;
-  let endIdx = -1;
-  for (let i = 0; i < n; i++) if (daySeries[i].date <= end) endIdx = i;
-  if (endIdx < 0) endIdx = n - 1;
+  const bandStart = Math.max(from, startIdx) - from;
+  const bandEnd = Math.min(to, endIdx) - from;
 
-  /* selected window: soft band + top rule */
-  const bandLeft = Math.max(padX - 6, x(startIdx) - 3);
-  const bandRight = Math.min(width - padX + 6, x(endIdx) + 3);
-  g.fillStyle = withAlpha(mood, 0.10);
-  roundRect(g, bandLeft, 4, Math.max(8, bandRight - bandLeft), height - 8, 8);
-  g.fill();
+  /* selected window: soft band */
+  if (bandEnd >= bandStart) {
+    const bandLeft = Math.max(padX - 6, x(bandStart) - 3);
+    const bandRight = Math.min(width - padX + 6, x(bandEnd) + 3);
+    g.fillStyle = withAlpha(mood, 0.10);
+    roundRect(g, bandLeft, 4, Math.max(8, bandRight - bandLeft), height - 8, 8);
+    g.fill();
+  }
 
   /* the -1 / 0 / +1 grid */
   g.strokeStyle = withAlpha(ink, 0.10);
@@ -426,44 +497,43 @@ function drawStrip(start, end) {
   g.lineJoin = "round";
   g.beginPath();
   let drawing = false;
-  daySeries.forEach((point, i) => {
+  pageDays.forEach((point, offset) => {
     if (point.mean == null) {
       drawing = false;
       return;
     }
-    if (drawing) g.lineTo(x(i), y(point.mean));
-    else g.moveTo(x(i), y(point.mean));
+    if (drawing) g.lineTo(x(offset), y(point.mean));
+    else g.moveTo(x(offset), y(point.mean));
     drawing = true;
   });
   g.stroke();
 
   /* a dot per day, coloured by where it lands */
-  daySeries.forEach((point, i) => {
+  pageDays.forEach((point, offset) => {
     if (point.mean == null) return;
     const colour = point.mean >= 0.05 ? pos : point.mean <= -0.05 ? neg : neu;
+    const isEnd = from + offset === endIdx;
     g.beginPath();
-    g.arc(x(i), y(point.mean), i === endIdx ? 4.4 : 2.6, 0, Math.PI * 2);
+    g.arc(x(offset), y(point.mean), isEnd ? 4.4 : 2.6, 0, Math.PI * 2);
     g.fillStyle = colour;
     g.fill();
-    if (i === endIdx) {
+    if (isEnd) {
       g.beginPath();
-      g.arc(x(i), y(point.mean), 7.5, 0, Math.PI * 2);
+      g.arc(x(offset), y(point.mean), 7.5, 0, Math.PI * 2);
       g.strokeStyle = withAlpha(colour, 0.55);
       g.lineWidth = 1.4;
       g.stroke();
     }
   });
 
-  /* end labels */
+  /* page labels */
   g.fillStyle = muted;
   g.font = "10px -apple-system, Helvetica, Arial, sans-serif";
   g.textBaseline = "alphabetic";
   g.textAlign = "left";
-  g.fillText(shortDay(daySeries[0].date), padX, height - 4);
+  g.fillText(shortDay(pageDays[0].date), padX, height - 4);
   g.textAlign = "right";
-  g.fillText(shortDay(daySeries[n - 1].date), width - padX, height - 4);
-
-  stripGeometry = { width, height, padX, n, span };
+  g.fillText(shortDay(pageDays[pageDays.length - 1].date), x(pageDays.length - 1), height - 4);
 }
 
 function shortDay(date) {
@@ -530,29 +600,9 @@ function initWeatherControls() {
     };
   }
 
-  const strip = $("weekStrip");
-  const tip = $("stripTip");
-  if (strip && tip) {
-    strip.addEventListener("mousemove", e => {
-      const i = stripIndexAt(e.clientX);
-      if (i < 0) return;
-      const point = daySeries[i];
-      tip.hidden = false;
-      tip.textContent = shortDay(point.date) + " · " + (point.mean == null ? "no scored items" : (point.mean >= 0 ? "+" : "") + point.mean.toFixed(2)) + " · " + point.n + " items";
-      const geom = stripGeometry;
-      const left = Math.min(Math.max(14, geom.padX + (geom.width - 2 * geom.padX) * (i / geom.span)), geom.width - 14);
-      tip.style.left = left + "px";
-    });
-    strip.addEventListener("mouseleave", () => {
-      tip.hidden = true;
-    });
-    strip.addEventListener("click", e => {
-      const i = stripIndexAt(e.clientX);
-      if (i < 0) return;
-      weather.end = clampEnd(daySeries[i].date);
-      renderWeather();
-      saveWeatherState();
-    });
+  const range = $("stripRange");
+  if (range) {
+    range.addEventListener("input", () => selectStripPage(+range.value));
   }
 }
 

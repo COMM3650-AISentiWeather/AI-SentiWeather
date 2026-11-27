@@ -1,11 +1,11 @@
 name: AI Sentiweather
 on:
   schedule:
-    # Primary at 08:00 HKT, plus fallbacks away from the busy start of the hour.
+    # 00:05, 00:17 and 00:37 Hong Kong time (UTC+8), on the previous UTC day.
     # A current complete public snapshot makes subsequent scheduled runs no-ops.
-    - cron: '0 0 * * *'
-    - cron: '17 0 * * *'
-    - cron: '37 0 * * *'
+    - cron: '5 16 * * *'
+    - cron: '17 16 * * *'
+    - cron: '37 16 * * *'
   workflow_dispatch:
     inputs:
       operation:

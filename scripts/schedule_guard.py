@@ -14,11 +14,16 @@ def snapshot_complete(path, cutoff):
         data = json.loads(Path(path).read_text(encoding="utf-8"))
         if instant(data["cutoff"]) < cutoff:
             return False
-        day = cutoff.astimezone(HK).date()
+        local_cutoff = cutoff.astimezone(HK)
+        day = local_cutoff.date()
         for source in (*MEDIA, *FORUM):
             if data["status"].get(source) != "ok":
                 return False
-            expected = day - timedelta(days=1) if source == "bbc" else day
+            # Midnight is an exclusive boundary: every source covers through
+            # the previous date. BBC date-only records also require a full day.
+            midnight = not (local_cutoff.hour or local_cutoff.minute or
+                            local_cutoff.second or local_cutoff.microsecond)
+            expected = day - timedelta(days=1) if source == "bbc" or midnight else day
             if data["ranges"][source][1] < expected.isoformat():
                 return False
         return True

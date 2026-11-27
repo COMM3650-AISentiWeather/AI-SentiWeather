@@ -90,19 +90,11 @@ def media_window(platform, state, starts):
 
 
 def cutoff_time():
-    """The most recent 07:55 HKT boundary: where every collection window ends.
-
-    The scheduled job starts at 08:00 HKT, so the window it collects closes at
-    07:55 that morning. Keeping the cutoff five minutes behind the trigger also
-    means a run that starts a few seconds early still resolves to today's
-    boundary instead of silently falling back to yesterday's window.
-    """
+    """The latest midnight HKT, an exclusive end for the entire previous day."""
     if os.getenv("OBS_CUTOFF"):
         return instant(os.environ["OBS_CUTOFF"])
     now = datetime.now(HK)
-    cutoff = datetime.combine(now.date(), time(7, 55), HK)
-    if now < cutoff:
-        cutoff -= timedelta(days=1)
+    cutoff = datetime.combine(now.date(), time.min, HK)
     return cutoff.astimezone(UTC)
 
 

@@ -13,6 +13,17 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 
 class PipelineTests(unittest.TestCase):
+    def test_midnight_cutoff_includes_last_minute_of_previous_day(self):
+        analyzer = SentimentIntensityAnalyzer()
+        cutoff = project.instant("2026-11-27T16:00:00Z")
+        item = dict(platform="nyt", id="a", content_type="article",
+                    published_at="2026-11-27T15:59:59Z", title="OpenAI update",
+                    body="", url="https://example.com/a", tags={"OpenAI"},
+                    terms=set(), channels=set(), unknown=set())
+        self.assertIsNotNone(build.record(item, analyzer, cutoff))
+        item["published_at"] = "2026-11-27T16:00:00Z"
+        self.assertIsNone(build.record(item, analyzer, cutoff))
+
     def test_source_selection_rejects_misspellings(self):
         import collect
         with patch.dict("os.environ", {"OBS_SOURCES": "nyt,unknown"}):

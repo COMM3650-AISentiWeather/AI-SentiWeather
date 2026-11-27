@@ -1,10 +1,11 @@
 name: AI Sentiweather
 on:
   schedule:
-    # 00:00 UTC = 08:00 HKT. Each run collects the window ending 07:55 HKT the
-    # same morning, so the five minutes between the cutoff and the trigger keep
-    # a run from ever falling back to yesterday's window.
+    # Primary at 08:00 HKT, plus fallbacks away from the busy start of the hour.
+    # A current complete public snapshot makes subsequent scheduled runs no-ops.
     - cron: '0 0 * * *'
+    - cron: '17 0 * * *'
+    - cron: '37 0 * * *'
   workflow_dispatch:
     inputs:
       operation:
@@ -37,8 +38,15 @@ jobs:
     steps:
       - uses: actions/checkout@v6
         with:
+          ref: main
           persist-credentials: true
+      - name: Check whether today's snapshot is already complete
+        id: freshness
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+        run: python scripts/schedule_guard.py
       - name: Verify private data settings
+        if: steps.freshness.outputs.needed == 'true'
         env:
           DATA_REPO: ${{ vars.DATA_REPO }}
           DATA_TOKEN: ${{ secrets.DATA_REPO_TOKEN }}
@@ -47,17 +55,21 @@ jobs:
           test -n "$DATA_REPO" && test -n "$DATA_TOKEN" || { echo "Configure DATA_REPO and DATA_REPO_TOKEN first"; exit 1; }
           test "$(gh api "repos/$DATA_REPO" --jq '.private')" = true || { echo 'Data repository must be private'; exit 1; }
       - uses: actions/checkout@v6
+        if: steps.freshness.outputs.needed == 'true'
         with:
           repository: ${{ vars.DATA_REPO }}
           ref: main
           token: ${{ secrets.DATA_REPO_TOKEN }}
           path: private-data
       - uses: actions/setup-python@v6
+        if: steps.freshness.outputs.needed == 'true'
         with:
           python-version: '3.12'
           cache: pip
       - run: python -m pip install -r requirements.txt
+        if: steps.freshness.outputs.needed == 'true'
       - run: python -m unittest discover -s tests
+        if: steps.freshness.outputs.needed == 'true'
       - name: Check backfill preparation
         if: github.event_name == 'workflow_dispatch' && inputs.operation == 'backfill'
         run: python scripts/backfill_reset.py
@@ -68,7 +80,7 @@ jobs:
         run: python scripts/backfill_reset.py --to "$RESET_TO" --force
       - name: Collect sources
         id: collect
-        if: github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.operation == 'update' || inputs.operation == 'backfill'))
+        if: steps.freshness.outputs.needed == 'true' && (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && (inputs.operation == 'update' || inputs.operation == 'backfill')))
         timeout-minutes: 245
         continue-on-error: true
         env:
@@ -90,14 +102,14 @@ jobs:
             git push origin HEAD:main
           fi
       - name: Build and check public snapshot
-        if: inputs.operation != 'backfill' && inputs.operation != 'restore'
+        if: steps.freshness.outputs.needed == 'true' && inputs.operation != 'backfill' && inputs.operation != 'restore'
         env:
           OBS_OUTPUT: docs
         run: |
           python scripts/build.py
           python -c "import json; d=json.load(open('docs/dashboard.json')); assert d['ranges'], 'No verified source windows yet; run update or import checkpoints'"
       - name: Publish the rebuilt site to docs/
-        if: inputs.operation != 'backfill' && inputs.operation != 'restore'
+        if: steps.freshness.outputs.needed == 'true' && inputs.operation != 'backfill' && inputs.operation != 'restore'
         run: |
           git config user.name "AI Sentiweather"
           git config user.email "actions@users.noreply.github.com"

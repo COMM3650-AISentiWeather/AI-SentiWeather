@@ -1345,17 +1345,16 @@ prepareMotion();
  * countdown to the next daily refresh
  * ------------------------------------------------------------------ */
 
-/* The scheduled job runs at 00:00 UTC, which is 08:00 in Hong Kong. The data
-   cutoff is 07:55 HKT so a slightly early trigger still lands on today's
-   window. Hong Kong is a fixed UTC+8 offset, so no DST handling is needed. */
-const REFRESH_UTC_HOUR = 0;
-const REFRESH_UTC_MINUTE = 0;
+/* The primary trigger is 00:05 Hong Kong time, after the previous day ends.
+   Hong Kong is UTC+8 throughout the year. */
+const REFRESH_HK_HOUR = 0;
+const REFRESH_HK_MINUTE = 5;
 const HK_OFFSET_MS = 8 * 60 * 60 * 1000;
 
 function nextRefreshAt(now = Date.now()) {
   const hkt = new Date(now + HK_OFFSET_MS);
   const midnight = Date.UTC(hkt.getUTCFullYear(), hkt.getUTCMonth(), hkt.getUTCDate());
-  let at = midnight + (REFRESH_UTC_HOUR * 60 + REFRESH_UTC_MINUTE) * 60000;
+  let at = midnight - HK_OFFSET_MS + (REFRESH_HK_HOUR * 60 + REFRESH_HK_MINUTE) * 60000;
   if (at <= now) at += 24 * 3600000;
   return at;
 }
@@ -1365,9 +1364,7 @@ function startUpdateCountdown() {
   const at = $("nextAt");
   if (at) {
     const pad = n => String(n).padStart(2, "0");
-    const hktH = (REFRESH_UTC_HOUR + 8) % 24;
-    /* Hong Kong is UTC+8 all year, so the label states the zone, not a UTC conversion */
-    at.textContent = pad(hktH) + ":" + pad(REFRESH_UTC_MINUTE) + " Hong Kong time (UTC+8)";
+    at.textContent = pad(REFRESH_HK_HOUR) + ":" + pad(REFRESH_HK_MINUTE) + " Hong Kong time (UTC+8)";
   }
   if (!clock) return;
   const tick = () => {
